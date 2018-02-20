@@ -19,6 +19,8 @@
 #include <jit.common.h>
 #include <jit.gl.h>
 
+#include <Processing.NDI.Lib.h>
+
 typedef struct _max_jit_ndi_send
 {
 	t_object object;
@@ -81,7 +83,7 @@ void max_jit_ndi_send_free(t_max_jit_ndi_send *x)
 	max_jit_object_free(x);
 }
 
-void *max_jit_ndi_send_new(t_symbol *s, long argc, t_atom *argv)
+void* max_jit_ndi_send_new(t_symbol *s, long argc, t_atom *argv)
 {
 	t_max_jit_ndi_send* x;
 	void* jit_ob;
@@ -108,11 +110,16 @@ void *max_jit_ndi_send_new(t_symbol *s, long argc, t_atom *argv)
 		}
 		else
 		{
-			error("jit.ndi.send: could not allocate object");
+			error("jit.ndi.send: could not allocate jitter object");
 			freeobject((t_object*)x);
 			x = nullptr;
 		}
 	}
+	else
+	{
+		error("jit.ndi.send: could not allocate max object");
+	}
+
 	return x;
 }
 

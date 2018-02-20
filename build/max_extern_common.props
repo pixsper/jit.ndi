@@ -32,9 +32,9 @@
       <OutputManifestFile>$(IntDir)$(TargetName).manifest</OutputManifestFile>
     </Manifest>
     <PostBuildEvent>
-      <Command>xcopy /F /R /Y /I "$(TargetPath)" "$(MaxPackageDir)\externals\"</Command>
-	  <Command>xcopy /F /R /Y /I "$(NDISDK_ROOT)\Bin\x86\Processing.NDI.Lib.x86.dll" "$(MaxPackageDir)\support\"</Command>
-	  <Command>xcopy /F /R /Y /I "$(NDISDK_ROOT)\Bin\x64\Processing.NDI.Lib.x64.dll" "$(MaxPackageDir)\support\"</Command>
+      <Command>xcopy /F /R /Y /I "$(TargetPath)" "$(MaxPackageDir)\externals\"
+xcopy /F /R /Y /I "$(NDISDK_ROOT)\Bin\x86\Processing.NDI.Lib.x86.dll" "$(MaxPackageDir)\support\"
+xcopy /F /R /Y /I "$(NDISDK_ROOT)\Bin\x64\Processing.NDI.Lib.x64.dll" "$(MaxPackageDir)\support\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
