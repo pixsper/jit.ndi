@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\jit.ndi.send.cpp" />
+    <ClCompile Include="src\max.jit.ndi.send.cpp" />
+    <ClCompile Include="$(C74SUPPORT)\max-includes\common\commonsyms.c">
+      <Filter>Max SDK</Filter>
+    </ClCompile>
+    <ClCompile Include="$(C74SUPPORT)\max-includes\common\dllmain_win.c">
+      <Filter>Max SDK</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Max SDK">
+      <UniqueIdentifier>{78dfc96d-8ace-4128-afc1-62af6606231d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
