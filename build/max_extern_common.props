@@ -9,7 +9,7 @@
 	<NDISDK_ROOT>C:\Program Files\NewTek\NewTek NDI SDK</NDISDK_ROOT>
   </PropertyGroup>
   <PropertyGroup>
-    <MaxPackageDir>$(USERPROFILE)\Documents\Max 8\Packages\jit.ndi\</MaxPackageDir>
+    <MaxPackageDir>$(USERPROFILE)\Documents\Max 7\Packages\jit.ndi\</MaxPackageDir>
   </PropertyGroup>
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>

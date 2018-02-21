@@ -262,8 +262,8 @@
   <ItemGroup>
     <ClCompile Include="$(C74SUPPORT)\max-includes\common\dllmain_win.c" />
     <ClCompile Include="$(C74SUPPORT)\max-includes\common\commonsyms.c" />
-    <ClCompile Include="src\jit.ndi.send.cpp" />
-    <ClCompile Include="src\max.jit.ndi.send.cpp" />
+    <ClCompile Include="src\jit.ndi.send.c" />
+    <ClCompile Include="src\max.jit.ndi.send.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
