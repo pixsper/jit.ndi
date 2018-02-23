@@ -6,8 +6,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-	  <AdditionalDependencies>Processing.NDI.Lib.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(C74SUPPORT)\max-includes\x64;$(C74SUPPORT)\msp-includes\x64;$(C74SUPPORT)\jit-includes\x64;$(NDISDK_ROOT)\Lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(C74SUPPORT)\max-includes\x64;$(C74SUPPORT)\msp-includes\x64;$(C74SUPPORT)\jit-includes\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ResourceCompile>
       <PreprocessorDefinitions>VER_TARGETEXT=\".mxe64\";%(PreprocessorDefinitions)</PreprocessorDefinitions>

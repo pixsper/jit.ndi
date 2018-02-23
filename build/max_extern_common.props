@@ -6,7 +6,6 @@
     <EXTERNALS_ROOT>$(C74_ROOT)\externals</EXTERNALS_ROOT>
     <EXTENSIONS_ROOT>$(C74_ROOT)\extensions</EXTENSIONS_ROOT>
     <JSEXTENSIONS_ROOT>$(C74_ROOT)\jsextensions</JSEXTENSIONS_ROOT>
-	<NDISDK_ROOT>C:\Program Files\NewTek\NewTek NDI SDK</NDISDK_ROOT>
   </PropertyGroup>
   <PropertyGroup>
     <MaxPackageDir>$(USERPROFILE)\Documents\Max 7\Packages\jit.ndi\</MaxPackageDir>
@@ -26,15 +25,13 @@
     </ResourceCompile>
     <ClCompile>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NOMINMAX;MAXAPI_USE_MSCRT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(C74SUPPORT)\max-includes;$(C74SUPPORT)\msp-includes;$(C74SUPPORT)\jit-includes;$(NDISDK_ROOT)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(C74SUPPORT)\max-includes;$(C74SUPPORT)\msp-includes;$(C74SUPPORT)\jit-includes;$(ProjectDir);lib\NewTek NDI SDK\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Manifest>
       <OutputManifestFile>$(IntDir)$(TargetName).manifest</OutputManifestFile>
     </Manifest>
     <PostBuildEvent>
-      <Command>xcopy /F /R /Y /I "$(TargetPath)" "$(MaxPackageDir)\externals\"
-xcopy /F /R /Y /I "$(NDISDK_ROOT)\Bin\x86\Processing.NDI.Lib.x86.dll" "$(MaxPackageDir)\support\"
-xcopy /F /R /Y /I "$(NDISDK_ROOT)\Bin\x64\Processing.NDI.Lib.x64.dll" "$(MaxPackageDir)\support\"</Command>
+      <Command>xcopy /F /R /Y /I "$(TargetPath)" "$(MaxPackageDir)\externals\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -52,9 +49,6 @@ xcopy /F /R /Y /I "$(NDISDK_ROOT)\Bin\x64\Processing.NDI.Lib.x64.dll" "$(MaxPack
     </BuildMacro>
     <BuildMacro Include="JSEXTENSIONS_ROOT">
       <Value>$(JSEXTENSIONS_ROOT)</Value>
-    </BuildMacro>
-	<BuildMacro Include="NDISDK_ROOT">
-      <Value>$(NDISDK_ROOT)</Value>
     </BuildMacro>
   </ItemGroup>
 </Project>

@@ -15,4 +15,7 @@
       <UniqueIdentifier>{78dfc96d-8ace-4128-afc1-62af6606231d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ndi_runtime.h" />
+  </ItemGroup>
 </Project>

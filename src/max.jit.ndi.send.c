@@ -19,6 +19,13 @@
 #include <jit.common.h>
 #include <max.jit.mop.h>
 
+#include <Processing.NDI.Lib.h>
+
+#include "ndi_runtime.h"
+
+HMODULE runtimeModule;
+extern NDIlib_v3* ndiLib;
+
 typedef struct _max_jit_ndi_send
 {
 	t_object object;
@@ -38,6 +45,9 @@ t_class* max_jit_ndi_send_class;
 
 void ext_main(void* r)
 {
+	if (!load_ndi_runtime(&runtimeModule, &ndiLib))
+		return;
+
 	common_symbols_init();
 	_sym_jit_ndi_send = gensym("jit_ndi_send");
 
@@ -59,7 +69,6 @@ void ext_main(void* r)
 	class_register(CLASS_BOX, maxclass);
 	max_jit_ndi_send_class = maxclass;
 }
-
 
 void* max_jit_ndi_send_new(t_symbol *s, long argc, t_atom *argv)
 {

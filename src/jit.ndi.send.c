@@ -22,6 +22,8 @@
 
 #define NUM_FRAMEBUFFERS 2
 
+NDIlib_v3* ndiLib;
+
 typedef enum _ColorMode
 {
 	COLORMODE_ARGB,
@@ -132,7 +134,7 @@ t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName)
 {
 	t_jit_ndi_send* x;
 
-	if (!NDIlib_initialize())
+	if (!ndiLib->NDIlib_initialize())
 	{
 		jit_object_error(NULL, "jit.ndi.send: This machine does not meet the specification required to run NDI.");
 		return NULL;
@@ -288,7 +290,7 @@ t_jit_err jit_spill_matrix_calc(t_jit_ndi_send* x, void* inputs, void* outputs)
 		++x->framebufferIndex;
 		x->framebufferIndex %= NUM_FRAMEBUFFERS;
 
-		NDIlib_send_send_video_async_v2(x->ndiSendInstance, x->ndiFrameInfo);
+		ndiLib->NDIlib_send_send_video_async_v2(x->ndiSendInstance, x->ndiFrameInfo);
 	}
 	else
 	{
@@ -310,7 +312,7 @@ bool jit_ndi_create_sender(t_jit_ndi_send* x)
 	ndiSendCreateDesc.clock_video = true;
 	ndiSendCreateDesc.clock_audio = false;
 
-	x->ndiSendInstance = NDIlib_send_create(&ndiSendCreateDesc);
+	x->ndiSendInstance = ndiLib->NDIlib_send_create(&ndiSendCreateDesc);
 
 	return x->ndiSendInstance != NULL;
 }
@@ -320,9 +322,9 @@ void jit_ndi_free_sender(t_jit_ndi_send* x)
 	if (x->ndiSendInstance != NULL)
 	{
 		// Make sure that NDI isn't still using the last framebuffer
-		NDIlib_send_send_video_async_v2(x->ndiSendInstance, NULL);
+		ndiLib->NDIlib_send_send_video_async_v2(x->ndiSendInstance, NULL);
 
-		NDIlib_send_destroy(x->ndiSendInstance);
+		ndiLib->NDIlib_send_destroy(x->ndiSendInstance);
 		x->ndiSendInstance = NULL;
 	}
 }
@@ -378,7 +380,7 @@ void jit_ndi_create_frame_buffers(t_jit_ndi_send* x)
 void jit_ndi_free_frame_buffers(t_jit_ndi_send* x)
 {
 	// Make sure that NDI isn't still using the last framebuffer
-	NDIlib_send_send_video_async_v2(x->ndiSendInstance, NULL);
+	ndiLib->NDIlib_send_send_video_async_v2(x->ndiSendInstance, NULL);
 
 	for (int i = 0; i < NUM_FRAMEBUFFERS; ++i)
 	{
