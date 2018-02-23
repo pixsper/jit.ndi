@@ -24,8 +24,6 @@ typedef struct _max_jit_ndi_send
 	t_object object;
 	void* obex;
 
-	void* outletDump;
-
 } t_max_jit_ndi_send;
 
 t_symbol* _sym_jit_ndi_send;
@@ -50,9 +48,9 @@ void ext_main(void* r)
 
 	max_jit_class_obex_setup(maxclass, calcoffset(t_max_jit_ndi_send, obex));
 
-	t_class* jitclass = (t_class*)jit_class_findbyname(gensym("jit_ndi_send"));
+	t_class* jitclass = (t_class*)jit_class_findbyname(_sym_jit_ndi_send);
 
-	max_jit_class_mop_wrap(maxclass, jitclass, 0);
+	max_jit_class_mop_wrap(maxclass, jitclass,  MAX_JIT_MOP_FLAGS_OWN_ADAPT | MAX_JIT_MOP_FLAGS_OWN_OUTPUTMODE);
 	max_jit_class_wrap_standard(maxclass, jitclass, 0);
 
 	class_addmethod(maxclass, (method)max_jit_mop_assist, "assist", A_CANT, 0);
@@ -67,23 +65,19 @@ void* max_jit_ndi_send_new(t_symbol *s, long argc, t_atom *argv)
 {
 	t_max_jit_ndi_send* x;
 	void* jit_ob;
-	t_symbol* destName = _jit_sym_nothing;
+	t_symbol* sourceName = jit_symbol_unique();
 
 	if ((x = (t_max_jit_ndi_send *)max_jit_object_alloc(max_jit_ndi_send_class, _sym_jit_ndi_send)))
 	{
 		const long attrstart = max_jit_attr_args_offset(argc, argv);
 		if (attrstart && argv)
-			jit_atom_arg_getsym(&destName, 0, attrstart, argv);
+			jit_atom_arg_getsym(&sourceName, 0, attrstart, argv);
 
 		// instantiate Jitter object with dest_name arg
-		if ((jit_ob = jit_object_new(_sym_jit_ndi_send, destName)))
+		if ((jit_ob = jit_object_new(_sym_jit_ndi_send, sourceName)))
 		{
-			max_jit_mop_setup_simple(x, jit_ob, argc, argv);
+			max_jit_mop_setup_simple(x, jit_ob, 0, NULL);
 			max_jit_attr_args(x, argc, argv);
-
-			// add a general purpose outlet (rightmost)
-			x->outletDump = outlet_new(x, NULL);
-			max_jit_obex_dumpout_set(x, x->outletDump);
 		}
 		else
 		{
