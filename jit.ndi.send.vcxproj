@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B749A61F-9832-490F-4563-BDA3FE63CE24}</ProjectGuid>
-    <ProjectName>jit.ndi.send</ProjectName>
+    <ProjectName>jit.ndi.send~</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -263,7 +263,7 @@
     <ClCompile Include="$(C74SUPPORT)\max-includes\common\dllmain_win.c" />
     <ClCompile Include="$(C74SUPPORT)\max-includes\common\commonsyms.c" />
     <ClCompile Include="src\jit.ndi.send.c" />
-    <ClCompile Include="src\max.jit.ndi.send.c" />
+    <ClCompile Include="src\max.jit.ndi.send~.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ndi_runtime.h" />

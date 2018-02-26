@@ -8,7 +8,7 @@
       <Filter>Max SDK</Filter>
     </ClCompile>
     <ClCompile Include="src\jit.ndi.send.c" />
-    <ClCompile Include="src\max.jit.ndi.send.c" />
+    <ClCompile Include="src\max.jit.ndi.send~.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Max SDK">
