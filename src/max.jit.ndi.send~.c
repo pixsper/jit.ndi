@@ -24,7 +24,6 @@
 #include <Processing.NDI.Lib.h>
 
 #include "ndi_runtime.h"
-#include <ext_preprocessor.h>
 
 HMODULE runtimeModule;
 extern NDIlib_v3* ndiLib;

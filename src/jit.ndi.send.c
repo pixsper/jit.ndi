@@ -70,7 +70,7 @@ t_symbol* _sym_argb;
 t_symbol* _sym_uyvy;
 
 t_jit_err jit_ndi_send_init();
-t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName);
+t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName, t_atom_long numAudioChannels);
 void jit_ndi_send_free(t_jit_ndi_send* x);
 t_jit_err jit_spill_matrix_calc(t_jit_ndi_send* x, void* inputs, void* outputs);
 
@@ -465,10 +465,10 @@ void jit_ndi_add_samples(t_jit_ndi_send* x, double** ins, long sampleFrames, lon
 
 	for(int c = 0; c < x->attrNumAudioChannels; ++c)
 	{
-		double* src = ins[c];
+		double* src = ins[c] + startframe;
 		float* dst = x->audioFramebuffer + (x->ndiAudioFrameInfo->no_samples * c) + x->audioFramebufferPosition;
 		
-		for(int s = startframe; s < samplesToCopy; ++s)
+		for(int s = 0; s < samplesToCopy; ++s)
 			*(dst++) = *(src++);
 	}
 
