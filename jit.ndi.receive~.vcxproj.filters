@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\jit.ndi.receive.c" />
+    <ClCompile Include="src\max.jit.ndi.receive~.c" />
+    <ClCompile Include="$(C74SUPPORT)\max-includes\common\commonsyms.c">
+      <Filter>Max SDK</Filter>
+    </ClCompile>
+    <ClCompile Include="$(C74SUPPORT)\max-includes\common\dllmain_win.c">
+      <Filter>Max SDK</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ndi_runtime.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Max SDK">
+      <UniqueIdentifier>{502d4b01-2f90-4c63-a515-48fba53ec791}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

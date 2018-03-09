@@ -16,11 +16,11 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 #include <jit.common.h>
-#include <jit.gl.h>
 
 #include <Processing.NDI.Lib.h>
 
 #define NUM_FRAMEBUFFERS 2
+#define TALLY_UPDATE_INTERVAL 100
 
 NDIlib_v3* ndiLib;
 
@@ -53,6 +53,7 @@ typedef struct _jit_ndi_send
 	NDIlib_video_frame_v2_t* ndiVideoFrameInfo;
 	NDIlib_audio_frame_v2_t* ndiAudioFrameInfo;
 
+	long videoFramebufferLength;
 	void* videoFramebuffers[NUM_FRAMEBUFFERS];
 	int videoFramebufferIndex;
 
@@ -63,32 +64,47 @@ typedef struct _jit_ndi_send
 	t_atom_long attrNumAudioChannels;
 	ColorMode attrColorMode;
 	t_atom_long attrFramerate;
+	t_bool attrTallyOnProgram;
+	t_bool attrTallyOnPreview;
+	t_bool attrPtzEnable;
+
+	void* receiveClock;
 
 } t_jit_ndi_send;
 
 t_symbol* _sym_argb;
 t_symbol* _sym_uyvy;
+t_symbol* _sym_tally_onprogram;
+t_symbol* _sym_tally_onpreview;
+
 
 t_jit_err jit_ndi_send_init();
 t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName, t_atom_long numAudioChannels);
 void jit_ndi_send_free(t_jit_ndi_send* x);
-t_jit_err jit_spill_matrix_calc(t_jit_ndi_send* x, void* inputs, void* outputs);
 
-bool jit_ndi_create_sender(t_jit_ndi_send* x);
-void jit_ndi_free_sender(t_jit_ndi_send* x);
+t_jit_err jit_ndi_send_matrix_calc(t_jit_ndi_send* x, void* inputs, void* outputs);
 
-void jit_ndi_create_video_frame_struct(t_jit_ndi_send* x);
-void jit_ndi_free_video_frame_struct(t_jit_ndi_send* x);
-void jit_ndi_create_video_frame_buffers(t_jit_ndi_send* x);
-void jit_ndi_free_video_frame_buffers(t_jit_ndi_send* x);
+bool jit_ndi_send_create_sender(t_jit_ndi_send* x);
+void jit_ndi_send_free_sender(t_jit_ndi_send* x);
 
-void jit_ndi_create_audio_frame_struct(t_jit_ndi_send* x, double samplerate);
-void jit_ndi_free_audio_frame_struct(t_jit_ndi_send* x);
+void jit_ndi_send_create_video_frame_struct(t_jit_ndi_send* x);
+void jit_ndi_send_free_video_frame_struct(t_jit_ndi_send* x);
+void jit_ndi_send_create_video_frame_buffers(t_jit_ndi_send* x);
+void jit_ndi_send_free_video_frame_buffers(t_jit_ndi_send* x);
 
-void jit_ndi_add_samples(t_jit_ndi_send* x, double** ins, long sampleFrames, long startframe);
+void jit_ndi_send_create_audio_frame_struct(t_jit_ndi_send* x, double samplerate);
+void jit_ndi_send_free_audio_frame_struct(t_jit_ndi_send* x);
 
-t_jit_err jit_ndi_setattr_colormode(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
-t_jit_err jit_ndi_setattr_framerate(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
+void jit_ndi_send_add_samples(t_jit_ndi_send* x, double** ins, long sampleFrames, long startframe);
+
+void jit_ndi_send_receivedata(t_jit_ndi_send* x);
+void jit_ndi_send_updatetally(t_jit_ndi_send* x);
+void jit_ndi_send_setcapabilities(t_jit_ndi_send* x);
+
+t_jit_err jit_ndi_send_setattr_colormode(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_send_setattr_framerate(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_send_setattr_ptz_enable(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_send_set_attr_dummy(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
 
 t_atom_float framerate_to_value(Framerate fr);
 
@@ -100,6 +116,8 @@ t_jit_err jit_ndi_send_init()
 {
 	_sym_argb = gensym("argb");
 	_sym_uyvy = gensym("uyvy");
+	_sym_tally_onprogram = gensym("tally_onprogram");
+	_sym_tally_onpreview = gensym("tally_onpreview");
 
 	_jit_ndi_send_class = jit_class_new("jit_ndi_send",
 	                                    (method)jit_ndi_send_new, (method)jit_ndi_send_free,
@@ -108,43 +126,69 @@ t_jit_err jit_ndi_send_init()
 	t_jit_object* mop = jit_object_new(_jit_sym_jit_mop, 1, 0);
 	jit_class_addadornment(_jit_ndi_send_class, mop);
 
-	jit_class_addmethod(_jit_ndi_send_class, (method)jit_spill_matrix_calc, "matrix_calc", A_CANT, 0L);
+	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_send_matrix_calc, "matrix_calc", A_CANT, 0L);
 
-	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_create_audio_frame_struct, "audio_start", A_CANT, 0L);
-	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_add_samples, "add_samples", A_CANT, 0L);
-	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_free_audio_frame_struct, "audio_stop", A_CANT, 0L);
+	jit_class_addmethod(_jit_ndi_send_class, (method)jit_object_register, "register", A_CANT, 0L);
+
+	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_send_create_audio_frame_struct, "audio_start", A_CANT, 0L);
+	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_send_add_samples, "add_samples", A_CANT, 0L);
 
 	long attrflags = JIT_ATTR_GET_DEFER_LOW | JIT_ATTR_SET_USURP_LOW;
 
-	t_jit_object* attr = jit_object_new(_jit_sym_jit_attr_offset, "name", _jit_sym_symbol, attrflags | JIT_ATTR_SET_OPAQUE | JIT_ATTR_SET_OPAQUE_USER, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrSenderName));
+	t_jit_object* attr = jit_object_new(_jit_sym_jit_attr_offset, "name", _jit_sym_symbol, attrflags, 
+		(method)0L, (method)jit_ndi_send_set_attr_dummy, calcoffset(t_jit_ndi_send, attrSenderName));
 	jit_class_addattr(_jit_ndi_send_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"NDI Source Name\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "1");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
-	attr = jit_object_new(_jit_sym_jit_attr_offset, "num_channels", _jit_sym_long, attrflags | JIT_ATTR_SET_OPAQUE | JIT_ATTR_SET_OPAQUE_USER, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrNumAudioChannels));
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "num_channels", _jit_sym_long, attrflags, 
+		(method)0L, (method)jit_ndi_send_set_attr_dummy, calcoffset(t_jit_ndi_send, attrNumAudioChannels));
 	jit_class_addattr(_jit_ndi_send_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Number of Audio Channels\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
-	attr = jit_object_new(_jit_sym_jit_attr_offset, "colormode", _jit_sym_long, attrflags, 
-		(method)0L, (method)jit_ndi_setattr_colormode, calcoffset(t_jit_ndi_send, attrColorMode));
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "colormode", _jit_sym_char, attrflags, 
+		(method)0L, (method)jit_ndi_send_setattr_colormode, calcoffset(t_jit_ndi_send, attrColorMode));
 	jit_class_addattr(_jit_ndi_send_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Color Mode\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "3");
 	object_addattr_parse(attr, "style", _jit_sym_symbol, 0, "enumindex");
 	object_addattr_parse(attr, "enumvals", _jit_sym_symbol, 0, "argb uyvy");
 
-	attr = jit_object_new(_jit_sym_jit_attr_offset, "framerate", _jit_sym_long, attrflags, 
-		(method)0L, (method)jit_ndi_setattr_framerate, calcoffset(t_jit_ndi_send, attrFramerate));
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "framerate", _jit_sym_char, attrflags, 
+		(method)0L, (method)jit_ndi_send_setattr_framerate, calcoffset(t_jit_ndi_send, attrFramerate));
 	jit_class_addattr(_jit_ndi_send_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Framerate\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "4");
 	object_addattr_parse(attr, "style", _jit_sym_symbol, 0, "enumindex");
 	object_addattr_parse(attr, "enumvals", _jit_sym_symbol, 0, "\"23.98\" \"24\" \"25\" \"29.97\" \"30\" \"48\" \"50\" \"59.98\" \"60\"");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_enable", _jit_sym_char, attrflags, 
+		(method)0L, (method)jit_ndi_send_setattr_ptz_enable, calcoffset(t_jit_ndi_send, attrPtzEnable));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"PTZ Enabled\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "5");
+	
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "tally_onprogram", _jit_sym_char, attrflags, 
+		(method)0L, (method)jit_ndi_send_set_attr_dummy, calcoffset(t_jit_ndi_send, attrTallyOnProgram));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"On Program\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"Tally\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "1");
+	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "tally_onpreview", _jit_sym_char, attrflags, 
+		(method)0L, (method)jit_ndi_send_set_attr_dummy, calcoffset(t_jit_ndi_send, attrTallyOnPreview));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"On Preview\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"Tally\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
+	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
 	jit_class_register(_jit_ndi_send_class);
 
@@ -167,26 +211,33 @@ t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName, t_atom_long numAudioChann
 
 	x->attrSenderName = sourceName;
 	x->attrNumAudioChannels = numAudioChannels;
-
 	x->attrFramerate = FRAMERATE_30;
 	x->attrColorMode = COLORMODE_ARGB;
+	x->attrPtzEnable = false;
+	x->attrTallyOnProgram = false;
+	x->attrTallyOnPreview = false;
 
+	x->ndiSendInstance = NULL;
+
+	x->videoFramebufferLength = 0;
 	for (int i = 0; i < NUM_FRAMEBUFFERS; ++i)
 		x->videoFramebuffers[i] = NULL;
 	x->ndiVideoFrameInfo = NULL;
-	x->ndiSendInstance = NULL;
 
 	x->audioFramebuffer = NULL;
+	x->ndiAudioFrameInfo = NULL;
 	x->audioFramebufferPosition = 0;
 
-	if (!jit_ndi_create_sender(x))
+	x->receiveClock = clock_new(x, jit_ndi_send_receivedata);
+
+	if (!jit_ndi_send_create_sender(x))
 	{
 		object_error((t_object*)x, "Failed to create NDI sender, sender name '%s' may already be in use", sourceName->s_name);
 		jit_object_free(x);
 		return NULL; 
 	}
 
-	jit_ndi_create_video_frame_struct(x);
+	jit_ndi_send_create_video_frame_struct(x);
 
 	return x;
 }
@@ -196,15 +247,17 @@ void jit_ndi_send_free(t_jit_ndi_send* x)
 	if (!x)
 		return;
 
-	jit_ndi_free_audio_frame_struct(x);
+	jit_ndi_send_free_audio_frame_struct(x);
 
-	jit_ndi_free_video_frame_buffers(x);
-	jit_ndi_free_video_frame_struct(x);
-	jit_ndi_free_sender(x);
+	jit_ndi_send_free_video_frame_buffers(x);
+	jit_ndi_send_free_video_frame_struct(x);
+	jit_ndi_send_free_sender(x);
+
+	clock_free(x->receiveClock);
 }
 
 
-t_jit_err jit_spill_matrix_calc(t_jit_ndi_send* x, void* inputs, void* outputs)
+t_jit_err jit_ndi_send_matrix_calc(t_jit_ndi_send* x, void* inputs, void* outputs)
 {
 	t_jit_err err = JIT_ERR_NONE;
 	long inputLock;
@@ -239,7 +292,7 @@ t_jit_err jit_spill_matrix_calc(t_jit_ndi_send* x, void* inputs, void* outputs)
 
 		if (inputMatrixInfo.dim[0] != x->ndiVideoFrameInfo->xres / (x->attrColorMode == COLORMODE_UYVY ? 2 : 1) || inputMatrixInfo.dim[1] != x->ndiVideoFrameInfo->yres)
 		{
-			jit_ndi_free_video_frame_buffers(x);
+			jit_ndi_send_free_video_frame_buffers(x);
 
 			x->ndiVideoFrameInfo->xres = inputMatrixInfo.dim[0] * (x->attrColorMode == COLORMODE_UYVY ? 2 : 1);
 			x->ndiVideoFrameInfo->yres = inputMatrixInfo.dim[1];
@@ -255,7 +308,7 @@ t_jit_err jit_spill_matrix_calc(t_jit_ndi_send* x, void* inputs, void* outputs)
 				goto out;
 			}
 
-			jit_ndi_create_video_frame_buffers(x);
+			jit_ndi_send_create_video_frame_buffers(x);
 		}
 
 		char* src = inputData;
@@ -332,9 +385,9 @@ out:
 }
 
 
-bool jit_ndi_create_sender(t_jit_ndi_send* x)
+bool jit_ndi_send_create_sender(t_jit_ndi_send* x)
 {
-	jit_ndi_free_sender(x);
+	jit_ndi_send_free_sender(x);
 
 	NDIlib_send_create_t ndiSendCreateDesc = { 0 };
 	ndiSendCreateDesc.p_ndi_name = x->attrSenderName->s_name;
@@ -343,13 +396,18 @@ bool jit_ndi_create_sender(t_jit_ndi_send* x)
 
 	x->ndiSendInstance = ndiLib->NDIlib_send_create(&ndiSendCreateDesc);
 
+	jit_ndi_send_setcapabilities(x);
+	jit_ndi_send_updatetally(x);
+
 	return x->ndiSendInstance != NULL;
 }
 
-void jit_ndi_free_sender(t_jit_ndi_send* x)
+void jit_ndi_send_free_sender(t_jit_ndi_send* x)
 {
 	if (x->ndiSendInstance != NULL)
 	{
+		clock_unset(x->receiveClock);
+
 		// Make sure that NDI isn't still using the last framebuffer
 		ndiLib->NDIlib_send_send_video_async_v2(x->ndiSendInstance, NULL);
 
@@ -360,15 +418,16 @@ void jit_ndi_free_sender(t_jit_ndi_send* x)
 
 
 
-void jit_ndi_create_video_frame_struct(t_jit_ndi_send* x)
+void jit_ndi_send_create_video_frame_struct(t_jit_ndi_send* x)
 {
-	jit_ndi_free_video_frame_struct(x);
+	jit_ndi_send_free_video_frame_struct(x);
 
-	x->ndiVideoFrameInfo = (NDIlib_video_frame_v2_t*)sysmem_newptrclear(sizeof(NDIlib_video_frame_v2_t));
+	x->ndiVideoFrameInfo = (NDIlib_video_frame_v2_t*)jit_getbytes(sizeof(NDIlib_video_frame_v2_t));
 
 	// These values will be filled in upon receiving a matrix
 	x->ndiVideoFrameInfo->xres = -1;
 	x->ndiVideoFrameInfo->yres = -1;
+	x->ndiVideoFrameInfo->picture_aspect_ratio = 0;
 	x->ndiVideoFrameInfo->FourCC = 0;
 
 	switch(x->attrFramerate)
@@ -387,28 +446,31 @@ void jit_ndi_create_video_frame_struct(t_jit_ndi_send* x)
 	x->ndiVideoFrameInfo->frame_format_type = NDIlib_frame_format_type_progressive;
 	x->ndiVideoFrameInfo->timecode = NDIlib_send_timecode_synthesize;
 	x->ndiVideoFrameInfo->timestamp = NDIlib_send_timecode_empty;
+	x->ndiVideoFrameInfo->p_metadata = NULL;
 }
 
-void jit_ndi_free_video_frame_struct(t_jit_ndi_send* x)
+void jit_ndi_send_free_video_frame_struct(t_jit_ndi_send* x)
 {
 	if (x->ndiVideoFrameInfo != NULL)
 	{
-		sysmem_freeptr(x->ndiVideoFrameInfo);
+		jit_freebytes(x->ndiVideoFrameInfo, sizeof(NDIlib_video_frame_v2_t));
 		x->ndiVideoFrameInfo = NULL;
 	}
 }
 
-void jit_ndi_create_video_frame_buffers(t_jit_ndi_send* x)
+void jit_ndi_send_create_video_frame_buffers(t_jit_ndi_send* x)
 {
-	jit_ndi_free_video_frame_buffers(x);
+	jit_ndi_send_free_video_frame_buffers(x);
+
+	x->videoFramebufferLength = x->ndiVideoFrameInfo->xres * x->ndiVideoFrameInfo->yres * (x->attrColorMode == COLORMODE_UYVY ? 2 : 4);
 
 	for (int i = 0; i < NUM_FRAMEBUFFERS; ++i)
-		x->videoFramebuffers[i] = jit_newptr(x->ndiVideoFrameInfo->xres * x->ndiVideoFrameInfo->yres * (x->attrColorMode == COLORMODE_UYVY ? 2 : 4));
+		x->videoFramebuffers[i] = jit_getbytes(x->videoFramebufferLength);
 
 	x->videoFramebufferIndex = 0;
 }
 
-void jit_ndi_free_video_frame_buffers(t_jit_ndi_send* x)
+void jit_ndi_send_free_video_frame_buffers(t_jit_ndi_send* x)
 {
 	// Make sure that NDI isn't still using the last framebuffer
 	ndiLib->NDIlib_send_send_video_async_v2(x->ndiSendInstance, NULL);
@@ -416,22 +478,25 @@ void jit_ndi_free_video_frame_buffers(t_jit_ndi_send* x)
 	for (int i = 0; i < NUM_FRAMEBUFFERS; ++i)
 	{
 		if (x->videoFramebuffers[i] != NULL)
-			jit_disposeptr(x->videoFramebuffers[i]);
+			jit_freebytes(x->videoFramebuffers[i], x->videoFramebufferLength);
 
 		x->videoFramebuffers[i] = NULL;
 	}
+
+	x->videoFramebufferLength = 0;
 }
 
 
-void jit_ndi_create_audio_frame_struct(t_jit_ndi_send* x, double samplerate)
+void jit_ndi_send_create_audio_frame_struct(t_jit_ndi_send* x, double samplerate)
 {
 	if (x->ndiAudioFrameInfo == NULL)
 	{
-		x->ndiAudioFrameInfo = (NDIlib_audio_frame_v2_t*)sysmem_newptrclear(sizeof(NDIlib_audio_frame_v2_t));
+		x->ndiAudioFrameInfo = (NDIlib_audio_frame_v2_t*)jit_getbytes(sizeof(NDIlib_audio_frame_v2_t));
 
 		x->ndiAudioFrameInfo->no_channels = x->attrNumAudioChannels;
 		x->ndiAudioFrameInfo->timecode = NDIlib_send_timecode_synthesize;
 		x->ndiAudioFrameInfo->timestamp = NDIlib_send_timecode_empty;
+		x->ndiAudioFrameInfo->p_metadata = NULL;
 	}
 
 	if (x->ndiAudioFrameInfo->sample_rate != (int)samplerate)
@@ -441,25 +506,25 @@ void jit_ndi_create_audio_frame_struct(t_jit_ndi_send* x, double samplerate)
 		x->ndiAudioFrameInfo->channel_stride_in_bytes = x->ndiAudioFrameInfo->no_samples * sizeof(float);
 
 		x->audioFramebufferPosition = 0;
-		x->audioFramebuffer = (float*)sysmem_newptr(x->ndiAudioFrameInfo->channel_stride_in_bytes * x->attrNumAudioChannels);
+		x->audioFramebuffer = (float*)jit_getbytes(x->ndiAudioFrameInfo->channel_stride_in_bytes * x->attrNumAudioChannels);
 		x->ndiAudioFrameInfo->p_data = x->audioFramebuffer;
 	}
 }
 
-void jit_ndi_free_audio_frame_struct(t_jit_ndi_send* x)
+void jit_ndi_send_free_audio_frame_struct(t_jit_ndi_send* x)
 {
 	if (x->ndiAudioFrameInfo != NULL)
 	{
-		sysmem_freeptr(x->audioFramebuffer);
+		jit_freebytes(x->audioFramebuffer, x->ndiAudioFrameInfo->channel_stride_in_bytes * x->attrNumAudioChannels);
 		x->audioFramebuffer = NULL;
 		x->audioFramebufferPosition = 0;
 
-		sysmem_freeptr(x->ndiAudioFrameInfo);
+		jit_freebytes(x->ndiAudioFrameInfo, sizeof(NDIlib_audio_frame_v2_t));
 		x->ndiAudioFrameInfo = NULL;
 	}
 }
 
-void jit_ndi_add_samples(t_jit_ndi_send* x, double** ins, long sampleFrames, long startframe)
+void jit_ndi_send_add_samples(t_jit_ndi_send* x, double** ins, long sampleFrames, long startframe)
 {
 	const int samplesToCopy = MIN(sampleFrames - startframe, x->ndiAudioFrameInfo->no_samples - x->audioFramebufferPosition);
 
@@ -481,11 +546,66 @@ void jit_ndi_add_samples(t_jit_ndi_send* x, double** ins, long sampleFrames, lon
 	}
 
 	if (startframe + samplesToCopy < sampleFrames)
-		jit_ndi_add_samples(x, ins, sampleFrames, startframe + samplesToCopy);
+		jit_ndi_send_add_samples(x, ins, sampleFrames, startframe + samplesToCopy);
 }
 
 
-t_jit_err jit_ndi_setattr_colormode(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
+void jit_ndi_send_receivedata(t_jit_ndi_send* x)
+{
+	if (x->ndiSendInstance == NULL)
+		return;
+
+	jit_ndi_send_updatetally(x);
+
+	NDIlib_metadata_frame_t metadata;
+	const NDIlib_frame_type_e frameType = ndiLib->NDIlib_send_capture(x->ndiSendInstance, &metadata, 0);
+
+	if (frameType == NDIlib_frame_type_metadata)
+	{
+		int i = 0;
+
+		ndiLib->NDIlib_send_free_metadata(x->ndiSendInstance, &metadata);
+	}
+}
+
+void jit_ndi_send_updatetally(t_jit_ndi_send* x)
+{
+	if (x->ndiSendInstance == NULL)
+		return;
+
+	NDIlib_tally_t tallyState;
+	ndiLib->NDIlib_send_get_tally(x->ndiSendInstance, &tallyState, 0);
+
+	if (x->attrTallyOnProgram != tallyState.on_program)
+	{
+		x->attrTallyOnProgram = tallyState.on_program;
+		jit_attr_setlong(x, _sym_tally_onprogram, x->attrTallyOnProgram); // Doesn't change attribute but sends notification
+	}
+
+	if (x->attrTallyOnPreview != tallyState.on_preview)
+	{
+		x->attrTallyOnPreview = tallyState.on_preview;
+		jit_attr_setlong(x, _sym_tally_onpreview, x->attrTallyOnPreview); // Doesn't change attribute but sends notification
+	}
+
+	clock_delay(x->receiveClock, TALLY_UPDATE_INTERVAL);
+}
+
+void jit_ndi_send_setcapabilities(t_jit_ndi_send* x)
+{
+	ndiLib->NDIlib_send_clear_connection_metadata(x->ndiSendInstance);
+
+	char capabilitiesXml[64];
+	snprintf(capabilitiesXml, 64, "<ndi_capabilities ntk_ptz=\"%s\"/>", x->attrPtzEnable ? "true" : "false");
+
+	NDIlib_metadata_frame_t capabilities;
+	capabilities.length = 0;
+	capabilities.timecode = NDIlib_send_timecode_synthesize;
+	capabilities.p_data = capabilitiesXml;
+	ndiLib->NDIlib_send_add_connection_metadata(x->ndiSendInstance, &capabilities);
+}
+
+t_jit_err jit_ndi_send_setattr_colormode(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
 {
 	if (argc < 1)
 		return JIT_ERR_NONE;
@@ -504,13 +624,13 @@ t_jit_err jit_ndi_setattr_colormode(t_jit_ndi_send* x, void* attr, long argc, t_
 	if (x->attrColorMode != updatedValue)
 	{
 		x->attrColorMode = updatedValue;
-		jit_ndi_create_video_frame_buffers(x);
+		jit_ndi_send_create_video_frame_buffers(x);
 	}
 
 	return JIT_ERR_NONE;
 }
 
-t_jit_err jit_ndi_setattr_framerate(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
+t_jit_err jit_ndi_send_setattr_framerate(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
 {
 	if (argc < 1)
 		return JIT_ERR_NONE;
@@ -545,12 +665,34 @@ t_jit_err jit_ndi_setattr_framerate(t_jit_ndi_send* x, void* attr, long argc, t_
 	if (x->attrFramerate != updatedValue)
 	{
 		x->attrFramerate = updatedValue;
-		jit_ndi_create_video_frame_struct(x);
+		jit_ndi_send_create_video_frame_struct(x);
 	}
 
 	return JIT_ERR_NONE;
 }
 
+t_jit_err jit_ndi_send_setattr_ptz_enable(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
+{
+	if (argc < 1)
+		return JIT_ERR_NONE;
+
+	const t_bool v = jit_atom_getlong(argv) > 0;
+
+	if (v != x->attrPtzEnable)
+	{
+		x->attrPtzEnable = v;
+		jit_ndi_send_setcapabilities(x);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_send_set_attr_dummy(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
+{
+	// Does nothing, to provide a setter for read only attributes. This is preferable rather than using 
+	// the OPAQUE flags as it allows the attribute to have a style and appear in attrui.
+	return JIT_ERR_NONE;
+}
 
 t_atom_float framerate_to_value(Framerate fr)
 {
