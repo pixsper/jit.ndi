@@ -57,7 +57,6 @@ void max_jit_ndi_receive_free(t_max_jit_ndi_receive* x);
 
 void max_jit_ndi_receive_notify(t_max_jit_ndi_receive* x, t_symbol* s, t_symbol* msg, void* ob, void* data);
 
-void max_jit_ndi_receive_refreshsources(t_max_jit_ndi_receive* x);
 void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x);
 
 void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short* count, double samplerate,

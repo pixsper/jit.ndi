@@ -46,22 +46,16 @@ typedef struct _jit_ndi_receive
 	NDIlib_recv_instance_t ndiReceiver;
 
 	t_dictionary* sources;
+	t_symbol* activeSourceId;
 
 	t_systhread receiveThread;
 	t_systhread_mutex receiveMutex;
 	bool isCancelThread;
 
 	t_systhread_mutex frameMutex;
-	NDIlib_video_frame_v2_t* activeVideoFrame;
-	NDIlib_video_frame_v2_t* inactiveVideoFrame;
-	NDIlib_audio_frame_v2_t* activeAudioFrame;
-	NDIlib_audio_frame_v2_t* inactiveAudioFrame;
-	
-	NDIlib_video_frame_v2_t videoFrames[2];
-	NDIlib_audio_frame_v2_t audioFrames[2];
 
-	t_symbol attrHostName;
-	t_symbol attrSourceName;
+	t_symbol* attrHostName;
+	t_symbol* attrSourceName;
 
 	t_bool attrTallyOnProgram;
 	t_bool attrTallyOnPreview;
@@ -101,6 +95,11 @@ void jit_ndi_receive_threadproc(t_jit_ndi_receive* x);
 void jit_ndi_receive_refreshsources(t_jit_ndi_receive* x);
 void jit_ndi_receive_update_tally(t_jit_ndi_receive* x);
 
+t_jit_err jit_ndi_receive_setattr_hostname(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_receive_setattr_sourcename(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_receive_setattr_tally_onprogram(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_receive_setattr_tally_onpreview(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
+
 t_symbol* pack_source_id(t_symbol* hostName, t_symbol* sourceName);
 bool unpack_source_id(t_symbol** hostName, t_symbol** sourceName, const char* const sourceId);
 
@@ -123,24 +122,36 @@ t_jit_err jit_ndi_receive_init()
 
 	long attrflags = JIT_ATTR_GET_DEFER_LOW | JIT_ATTR_SET_USURP_LOW;
 
-	t_jit_object* attr = jit_object_new(_jit_sym_jit_attr_offset, "color_mode", _jit_sym_char, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrColorMode));
+	t_jit_object* attr = jit_object_new(_jit_sym_jit_attr_offset, "hostname", _jit_sym_symbol, attrflags, 
+		(method)0L, (method)jit_ndi_receive_setattr_hostname, calcoffset(t_jit_ndi_receive, attrHostName));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Low Bandwidth Mode\"");
-	object_addattr_parse(attr, "style", _jit_sym_symbol, 0, "enumindex");
-	object_addattr_parse(attr, "enumvals", _jit_sym_symbol, 0, "argb uyvy");
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"NDI Host Name\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "1");
 
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "name", _jit_sym_symbol, attrflags, 
+		(method)0L, (method)jit_ndi_receive_setattr_sourcename, calcoffset(t_jit_ndi_receive, attrSourceName));
+	jit_class_addattr(_jit_ndi_receive_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"NDI Source Name\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
+	
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "color_mode", _jit_sym_char, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrColorMode));
+	jit_class_addattr(_jit_ndi_receive_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Color Mode\"");
+	object_addattr_parse(attr, "style", _jit_sym_symbol, 0, "enumindex");
+	object_addattr_parse(attr, "enumvals", _jit_sym_symbol, 0, "argb uyvy");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "3");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "low_bandwidth", _jit_sym_char, attrflags, 
 		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrLowBandwidth));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Low Bandwidth Mode\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
-	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "4");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "tally_onprogram", _jit_sym_char, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrTallyOnProgram));
+		(method)0L, (method)jit_ndi_receive_setattr_tally_onprogram, calcoffset(t_jit_ndi_receive, attrTallyOnProgram));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"On Program\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
@@ -148,7 +159,7 @@ t_jit_err jit_ndi_receive_init()
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "tally_onpreview", _jit_sym_char, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrTallyOnPreview));
+		(method)0L, (method)jit_ndi_receive_setattr_tally_onpreview, calcoffset(t_jit_ndi_receive, attrTallyOnPreview));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"On Preview\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
@@ -275,6 +286,8 @@ t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName,
 	x->isCancelThread = false;
 	systhread_mutex_new(&x->receiveMutex, 0);
 
+	x->attrHostName = hostName;
+	x->attrSourceName = sourceName;
 	x->attrTallyOnProgram = false;
 	x->attrTallyOnPreview = false;
 
@@ -294,11 +307,15 @@ t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName,
 	x->attrPtzAutoExposure = true;
 	x->attrPtzExposure = 0.5;
 
+	x->activeSourceId = pack_source_id(x->attrHostName, x->attrSourceName);
+
 	NDIlib_find_create_t finderCreateDesc = { 0 };
 	finderCreateDesc.show_local_sources = true;
 
 	x->ndiFinder = ndiLib->NDIlib_find_create_v2(&finderCreateDesc);
 	x->sources = dictionary_new();
+
+	jit_ndi_receive_create_receiver(x);
 
 	return x;
 }
@@ -319,89 +336,73 @@ void jit_ndi_receive_free(t_jit_ndi_receive* x)
 
 t_jit_err jit_ndi_receive_matrix_calc(t_jit_ndi_receive* x, void* inputs, void* outputs)
 {
-	
+	return JIT_ERR_NONE;
 }
 
 
 void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 {
-	NDIlib_source_t source;
-	source.p_ndi_name = x->attrSourceName.s_name;
-	source.p_ip_address = NULL;
+	if (x->ndiReceiver != NULL)
+		ndiLib->NDIlib_recv_destroy(x->ndiReceiver);
 
-	NDIlib_recv_create_t receiverCreateDesc;
-	receiverCreateDesc.source_to_connect_to = source;
-	receiverCreateDesc.color_format = x->attrColorMode == COLORMODE_UYVY ? NDIlib_recv_color_format_UYVY_RGBA : NDIlib_recv_color_format_RGBX_RGBA;
+	if (x->activeSourceId == NULL)
+		return;
+
+	NDIlib_recv_create_t receiverCreateDesc = { 0 };
+	receiverCreateDesc.source_to_connect_to.p_ndi_name = x->activeSourceId->s_name;
+
+	// Seems like we should be using NDIlib_recv_color_format_RGBX_RGBA instead below, but causes internal NDI SDK crash
+	receiverCreateDesc.color_format = x->attrColorMode == COLORMODE_UYVY ? NDIlib_recv_color_format_UYVY_RGBA : NDIlib_recv_color_format_BGRX_BGRA;
 	receiverCreateDesc.allow_video_fields = false;
 	receiverCreateDesc.bandwidth = x->attrLowBandwidth ? NDIlib_recv_bandwidth_lowest : NDIlib_recv_bandwidth_highest;
 
 	x->ndiReceiver = ndiLib->NDIlib_recv_create_v2(&receiverCreateDesc);
 	if (x->ndiReceiver == NULL)
 	{
-		object_error((t_object*)x, "Failed to connect to source '%s'", x->attrSourceName.s_name);
+		object_error((t_object*)x, "Failed to connect to source '%s'", x->attrSourceName->s_name);
 		return;
 	}
-
-	x->activeVideoFrame = &x->videoFrames[0];
-	x->inactiveVideoFrame = &x->videoFrames[1];
-	x->activeAudioFrame = &x->audioFrames[0];
-	x->inactiveAudioFrame = &x->audioFrames[1];
 
 	systhread_create((method)jit_ndi_receive_threadproc, x, 0, 0, 0, &x->receiveThread);
 }
 
 void jit_ndi_receive_free_receiver(t_jit_ndi_receive* x)
 {
-	if (x->ndiReceiver != NULL)
-		ndiLib->NDIlib_recv_destroy(x->ndiReceiver);
+	if (x->ndiReceiver == NULL)
+		return;
+
+	x->isCancelThread = true;
+	unsigned retVal;
+	systhread_join(x->receiveThread, &retVal);
+
+	x->receiveThread = NULL;
+	x->isCancelThread = false;
+
+	ndiLib->NDIlib_recv_destroy(x->ndiReceiver);
 }
 
 
 void jit_ndi_receive_threadproc(t_jit_ndi_receive* x)
 {
-	NDIlib_video_frame_v2_t* videoFrame = x->inactiveVideoFrame;
-	NDIlib_audio_frame_v2_t* audioFrame = x->inactiveAudioFrame;
-
-	NDIlib_metadata_frame_t metadataFrame;
+	NDIlib_video_frame_v2_t videoFrame = { 0 };
+	NDIlib_audio_frame_v2_t audioFrame = { 0 };
+	NDIlib_metadata_frame_t metadataFrame = { 0 };
 
 	while(!x->isCancelThread)
 	{
-		systhread_mutex_lock(x->receiveMutex);
 
-		switch (ndiLib->NDIlib_recv_capture_v2(x->ndiReceiver, videoFrame, audioFrame, &metadataFrame, 0))
+		switch (ndiLib->NDIlib_recv_capture_v2(x->ndiReceiver, &videoFrame, &audioFrame, &metadataFrame, 250))
 		{	
 			default:
 			case NDIlib_frame_type_none:
 				break;
 
 			case NDIlib_frame_type_video:
-				
-				systhread_mutex_lock(x->frameMutex);
-
-				x->inactiveVideoFrame = x->activeVideoFrame;
-				x->activeVideoFrame = videoFrame;
-				videoFrame = x->inactiveVideoFrame;
-
-				systhread_mutex_unlock(x->frameMutex);
-
-				ndiLib->NDIlib_recv_free_video_v2(x->ndiReceiver, x->inactiveVideoFrame);
-
-				
+				ndiLib->NDIlib_recv_free_video_v2(x->ndiReceiver, &videoFrame);
 				break;
 
 			case NDIlib_frame_type_audio:
-				
-				systhread_mutex_lock(x->frameMutex);
-
-				x->inactiveAudioFrame = x->activeAudioFrame;
-				x->activeAudioFrame = audioFrame;
-				audioFrame = x->inactiveAudioFrame;
-
-				systhread_mutex_unlock(x->frameMutex);
-
-				ndiLib->NDIlib_recv_free_audio_v2(x->ndiReceiver, x->inactiveAudioFrame);
-
-
+				ndiLib->NDIlib_recv_free_audio_v2(x->ndiReceiver, &audioFrame);
 				break;
 
 			case NDIlib_frame_type_metadata:
@@ -411,17 +412,7 @@ void jit_ndi_receive_threadproc(t_jit_ndi_receive* x)
 			case NDIlib_frame_type_status_change:
 				break;
 		}
-
-		systhread_mutex_unlock(x->receiveMutex);
-
-		systhread_sleep(16);
 	}
-
-	if (x->activeVideoFrame->p_data != NULL)
-		ndiLib->NDIlib_recv_free_video_v2(x->ndiReceiver, x->activeVideoFrame);
-
-	if (x->activeAudioFrame->p_data != NULL)
-		ndiLib->NDIlib_recv_free_audio_v2(x->ndiReceiver, x->activeAudioFrame);
 }
 
 
@@ -467,9 +458,77 @@ void jit_ndi_receive_update_tally(t_jit_ndi_receive* x)
 }
 
 
+
+t_jit_err jit_ndi_receive_setattr_hostname(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv)
+{
+	if (argc < 1)
+		return JIT_ERR_NONE;
+
+	t_symbol* s = jit_atom_getsym(argv);
+
+	if (s != x->attrHostName)
+	{
+		x->attrHostName = s;
+		x->activeSourceId = pack_source_id(x->attrHostName, x->attrSourceName);
+		jit_ndi_receive_create_receiver(x);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_sourcename(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv)
+{
+	if (argc < 1)
+		return JIT_ERR_NONE;
+
+	t_symbol* s = jit_atom_getsym(argv);
+
+	if (s != x->attrHostName)
+	{
+		x->attrSourceName = s;
+		x->activeSourceId = pack_source_id(x->attrHostName, x->attrSourceName);
+		jit_ndi_receive_create_receiver(x);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_tally_onprogram(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv)
+{
+	if (argc < 1)
+		return JIT_ERR_NONE;
+
+	const t_bool v = jit_atom_getlong(argv) > 0;
+
+	if (v != x->attrTallyOnProgram)
+	{
+		x->attrTallyOnProgram = v;
+		jit_ndi_receive_update_tally(x);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_tally_onpreview(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv)
+{
+	if (argc < 1)
+		return JIT_ERR_NONE;
+
+	const t_bool v = jit_atom_getlong(argv) > 0;
+
+	if (v != x->attrTallyOnPreview)
+	{
+		x->attrTallyOnPreview = v;
+		jit_ndi_receive_update_tally(x);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+
 t_symbol* pack_source_id(t_symbol* hostName, t_symbol* sourceName)
 {
-	if (hostName == NULL || sourceName == NULL)
+	if (hostName == NULL || sourceName == NULL || hostName == _jit_sym_nothing || sourceName == _jit_sym_nothing)
 		return NULL;
 
 	const size_t bufferLength = strlen(hostName->s_name) + strlen(sourceName->s_name) + 4;

@@ -60,7 +60,7 @@ typedef struct _jit_ndi_send
 	float* audioFramebuffer;
 	int audioFramebufferPosition;
 
-	t_symbol* attrSenderName;
+	t_symbol* attrSourceName;
 	t_atom_long attrNumAudioChannels;
 	ColorMode attrColorMode;
 	t_atom_long attrFramerate;
@@ -104,7 +104,7 @@ void jit_ndi_send_setcapabilities(t_jit_ndi_send* x);
 t_jit_err jit_ndi_send_setattr_colormode(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_send_setattr_framerate(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_send_setattr_ptz_enable(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
-t_jit_err jit_ndi_send_set_attr_dummy(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_send_setattr_dummy(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
 
 t_atom_float framerate_to_value(Framerate fr);
 
@@ -136,14 +136,14 @@ t_jit_err jit_ndi_send_init()
 	long attrflags = JIT_ATTR_GET_DEFER_LOW | JIT_ATTR_SET_USURP_LOW;
 
 	t_jit_object* attr = jit_object_new(_jit_sym_jit_attr_offset, "name", _jit_sym_symbol, attrflags, 
-		(method)0L, (method)jit_ndi_send_set_attr_dummy, calcoffset(t_jit_ndi_send, attrSenderName));
+		(method)0L, (method)jit_ndi_send_setattr_dummy, calcoffset(t_jit_ndi_send, attrSourceName));
 	jit_class_addattr(_jit_ndi_send_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"NDI Source Name\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "1");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "num_channels", _jit_sym_long, attrflags, 
-		(method)0L, (method)jit_ndi_send_set_attr_dummy, calcoffset(t_jit_ndi_send, attrNumAudioChannels));
+		(method)0L, (method)jit_ndi_send_setattr_dummy, calcoffset(t_jit_ndi_send, attrNumAudioChannels));
 	jit_class_addattr(_jit_ndi_send_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Number of Audio Channels\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
@@ -173,7 +173,7 @@ t_jit_err jit_ndi_send_init()
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "5");
 	
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "tally_onprogram", _jit_sym_char, attrflags, 
-		(method)0L, (method)jit_ndi_send_set_attr_dummy, calcoffset(t_jit_ndi_send, attrTallyOnProgram));
+		(method)0L, (method)jit_ndi_send_setattr_dummy, calcoffset(t_jit_ndi_send, attrTallyOnProgram));
 	jit_class_addattr(_jit_ndi_send_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"On Program\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
@@ -182,7 +182,7 @@ t_jit_err jit_ndi_send_init()
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "tally_onpreview", _jit_sym_char, attrflags, 
-		(method)0L, (method)jit_ndi_send_set_attr_dummy, calcoffset(t_jit_ndi_send, attrTallyOnPreview));
+		(method)0L, (method)jit_ndi_send_setattr_dummy, calcoffset(t_jit_ndi_send, attrTallyOnPreview));
 	jit_class_addattr(_jit_ndi_send_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"On Preview\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
@@ -209,7 +209,7 @@ t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName, t_atom_long numAudioChann
 	if (!((x = (t_jit_ndi_send *)jit_object_alloc(_jit_ndi_send_class))))
 		return NULL;
 
-	x->attrSenderName = sourceName;
+	x->attrSourceName = sourceName;
 	x->attrNumAudioChannels = numAudioChannels;
 	x->attrFramerate = FRAMERATE_30;
 	x->attrColorMode = COLORMODE_ARGB;
@@ -390,7 +390,7 @@ bool jit_ndi_send_create_sender(t_jit_ndi_send* x)
 	jit_ndi_send_free_sender(x);
 
 	NDIlib_send_create_t ndiSendCreateDesc = { 0 };
-	ndiSendCreateDesc.p_ndi_name = x->attrSenderName->s_name;
+	ndiSendCreateDesc.p_ndi_name = x->attrSourceName->s_name;
 	ndiSendCreateDesc.clock_video = true;
 	ndiSendCreateDesc.clock_audio = true;
 
@@ -687,7 +687,7 @@ t_jit_err jit_ndi_send_setattr_ptz_enable(t_jit_ndi_send* x, void* attr, long ar
 	return JIT_ERR_NONE;
 }
 
-t_jit_err jit_ndi_send_set_attr_dummy(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
+t_jit_err jit_ndi_send_setattr_dummy(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
 {
 	// Does nothing, to provide a setter for read only attributes. This is preferable rather than using 
 	// the OPAQUE flags as it allows the attribute to have a style and appear in attrui.
