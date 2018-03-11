@@ -20,6 +20,9 @@
 #include <Processing.NDI.Lib.h>
 #include <max.jit.mop.h>
 
+#define DEFAULT_INTERNAL_MATRIX_WIDTH 1920
+#define DEFAULT_INTERNAL_MATRIX_HEIGHT 1080
+
 NDIlib_v3* ndiLib;
 
 typedef enum _ColorMode
@@ -47,6 +50,10 @@ typedef struct _jit_ndi_receive
 
 	t_dictionary* sources;
 	t_symbol* activeSourceId;
+
+	t_jit_object* matrix;
+	int matrixWidth;
+	int matrixHeight;
 
 	t_systhread receiveThread;
 	t_systhread_mutex receiveMutex;
@@ -91,6 +98,8 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x);
 void jit_ndi_receive_free_receiver(t_jit_ndi_receive* x);
 
 void jit_ndi_receive_threadproc(t_jit_ndi_receive* x);
+
+void jit_ndi_receive_resize_internal_matrix(t_jit_ndi_receive *x, long width, long height);
 
 void jit_ndi_receive_refreshsources(t_jit_ndi_receive* x);
 void jit_ndi_receive_update_tally(t_jit_ndi_receive* x);
@@ -280,6 +289,8 @@ t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName,
 	if (!((x = (t_jit_ndi_receive *)jit_object_alloc(_jit_ndi_receive_class))))
 		return NULL;
 
+	jit_ndi_receive_resize_internal_matrix(x, DEFAULT_INTERNAL_MATRIX_WIDTH, DEFAULT_INTERNAL_MATRIX_HEIGHT);
+
 	x->ndiReceiver = NULL;
 
 	x->receiveThread = NULL;
@@ -331,12 +342,53 @@ void jit_ndi_receive_free(t_jit_ndi_receive* x)
 	jit_ndi_receive_free_receiver(x);
 
 	systhread_mutex_free(x->receiveMutex);
+
+	jit_object_free(x->matrix);
 }
 
 
 t_jit_err jit_ndi_receive_matrix_calc(t_jit_ndi_receive* x, void* inputs, void* outputs)
 {
-	return JIT_ERR_NONE;
+	t_jit_err err = JIT_ERR_NONE;
+	long lock;
+	long inputLock;
+	void* outputMatrix = jit_object_method(outputs,_jit_sym_getindex, 0);
+
+	if (x && outputMatrix)
+	{
+		lock = (long)jit_object_method(outputMatrix, _jit_sym_lock, 1);
+		inputLock = (long)jit_object_method(x->matrix, _jit_sym_lock, 1);
+
+		t_jit_matrix_info info;
+		jit_object_method(x->matrix, _jit_sym_getinfo, &info);
+		jit_object_method(outputMatrix, _jit_sym_setinfo, &info);
+
+		t_matrix_conv_info convInfo = { 0 };
+		convInfo.flags = JIT_MATRIX_CONVERT_SRCDIM;
+		convInfo.planemap[0] = 0;
+		convInfo.planemap[1] = 1;
+		convInfo.planemap[2] = 2;
+		convInfo.planemap[3] = 3;
+		convInfo.srcdimstart[0] = 0;
+		convInfo.srcdimstart[1] = 0;
+		convInfo.srcdimend[0] = info.dim[0];
+		convInfo.srcdimend[1] = info.dim[1];
+		convInfo.dstdimstart[0] = 0;
+		convInfo.dstdimstart[1] = 0;
+		convInfo.dstdimend[0] = info.dim[0];
+		convInfo.dstdimend[1] = info.dim[1];
+
+		err = jit_object_method(outputMatrix, _jit_sym_frommatrix, x->matrix, &convInfo);
+	}
+	else
+	{
+		return JIT_ERR_INVALID_PTR;
+	}
+
+out:
+	jit_object_method(outputMatrix, _jit_sym_lock, lock);
+	jit_object_method(x->matrix, _jit_sym_lock, inputLock);
+	return err;
 }
 
 
@@ -352,7 +404,7 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 	receiverCreateDesc.source_to_connect_to.p_ndi_name = x->activeSourceId->s_name;
 
 	// Seems like we should be using NDIlib_recv_color_format_RGBX_RGBA instead below, but causes internal NDI SDK crash
-	receiverCreateDesc.color_format = x->attrColorMode == COLORMODE_UYVY ? NDIlib_recv_color_format_UYVY_RGBA : NDIlib_recv_color_format_BGRX_BGRA;
+	receiverCreateDesc.color_format = x->attrColorMode == COLORMODE_UYVY ? NDIlib_recv_color_format_UYVY_BGRA : NDIlib_recv_color_format_BGRX_BGRA;
 	receiverCreateDesc.allow_video_fields = false;
 	receiverCreateDesc.bandwidth = x->attrLowBandwidth ? NDIlib_recv_bandwidth_lowest : NDIlib_recv_bandwidth_highest;
 
@@ -398,6 +450,52 @@ void jit_ndi_receive_threadproc(t_jit_ndi_receive* x)
 				break;
 
 			case NDIlib_frame_type_video:
+			{
+				long lock = (long)jit_object_method(x->matrix,_jit_sym_lock, 1);
+				
+				if (x->matrixWidth != videoFrame.xres || x->matrixHeight != videoFrame.yres)
+					jit_ndi_receive_resize_internal_matrix(x, videoFrame.xres, videoFrame.yres);
+
+				char* data;
+				jit_object_method(x->matrix,_jit_sym_getdata, &data);
+
+				uint8_t* src = videoFrame.p_data;
+				uint8_t* dst = (uint8_t*)data;
+
+				switch(videoFrame.FourCC)
+				{
+					case NDIlib_FourCC_type_BGRX:
+					case NDIlib_FourCC_type_BGRA:
+
+						for(int dy = 0; dy < videoFrame.yres; dy++)
+						{
+							for(int dx = 0; dx < videoFrame.xres; dx++)
+							{
+								*(dst++) = videoFrame.FourCC == NDIlib_FourCC_type_BGRA ? *(src + 3) : 255;
+								*(dst++) = *(src + 2);
+								*(dst++) = *(src + 1);
+								*(dst++) = *(src);
+
+								src += 4;
+							}
+						}
+
+						break;
+
+					case NDIlib_FourCC_type_UYVY:
+
+						const int length = videoFrame.yres * videoFrame.line_stride_in_bytes;
+						for(int i = 0; i < length; i++)
+								*(dst++) = *(src++);
+
+						break;
+
+					default:
+						break;
+				}
+
+				jit_object_method(x->matrix,_jit_sym_lock, lock);
+			}
 				ndiLib->NDIlib_recv_free_video_v2(x->ndiReceiver, &videoFrame);
 				break;
 
@@ -413,6 +511,25 @@ void jit_ndi_receive_threadproc(t_jit_ndi_receive* x)
 				break;
 		}
 	}
+}
+
+void jit_ndi_receive_resize_internal_matrix(t_jit_ndi_receive *x, long width, long height)
+{
+	x->matrixWidth = width;
+	x->matrixHeight = height;
+
+	t_jit_matrix_info info;
+	jit_matrix_info_default(&info);
+	info.type = _jit_sym_char;
+	info.planecount = 4;
+	info.dimcount = 2;
+	info.dim[0] = x->matrixWidth;
+	info.dim[1] = x->matrixHeight;
+
+	if (x->matrix == NULL)
+		x->matrix = jit_object_new(_jit_sym_jit_matrix, &info);
+	else
+		jit_object_method(x->matrix, _jit_sym_setinfo, &info);
 }
 
 

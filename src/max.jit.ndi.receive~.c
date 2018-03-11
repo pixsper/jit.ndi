@@ -56,6 +56,7 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv);
 void max_jit_ndi_receive_free(t_max_jit_ndi_receive* x);
 
 void max_jit_ndi_receive_notify(t_max_jit_ndi_receive* x, t_symbol* s, t_symbol* msg, void* ob, void* data);
+void max_jit_ndi_outputmatrix(t_max_jit_ndi_receive *x);
 
 void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x);
 
@@ -92,15 +93,16 @@ void ext_main(void* r)
 
 	t_class* jitclass = (t_class*)jit_class_findbyname(_sym_jit_ndi_receive);
 
-	max_jit_class_mop_wrap(maxclass, jitclass, MAX_JIT_MOP_FLAGS_OWN_ADAPT | MAX_JIT_MOP_FLAGS_OWN_OUTPUTMODE 
-		| MAX_JIT_MOP_FLAGS_OWN_DIM | MAX_JIT_MOP_FLAGS_OWN_PLANECOUNT | MAX_JIT_MOP_FLAGS_OWN_TYPE);
+	max_jit_class_mop_wrap(maxclass, jitclass, MAX_JIT_MOP_FLAGS_OWN_OUTPUTMATRIX | MAX_JIT_MOP_FLAGS_OWN_JIT_MATRIX | MAX_JIT_MOP_FLAGS_OWN_ADAPT 
+		| MAX_JIT_MOP_FLAGS_OWN_OUTPUTMODE | MAX_JIT_MOP_FLAGS_OWN_DIM | MAX_JIT_MOP_FLAGS_OWN_PLANECOUNT | MAX_JIT_MOP_FLAGS_OWN_TYPE);
 	max_jit_class_wrap_standard(maxclass, jitclass, 0);
 
 	class_addmethod(maxclass, (method)max_jit_mop_assist, "assist", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_notify, "notify", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_dsp64, "dsp64", A_CANT, 0);
-
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_getsourcelist, "getsourcelist", 0);
+
+	max_jit_class_addmethod_usurp_low(maxclass, (method)max_jit_ndi_outputmatrix, "outputmatrix");
 
 	class_dspinit(maxclass);
 	class_register(CLASS_BOX, maxclass);
@@ -199,6 +201,12 @@ void max_jit_ndi_receive_notify(t_max_jit_ndi_receive* x, t_symbol* s, t_symbol*
 	}
 }
 
+void max_jit_ndi_outputmatrix(t_max_jit_ndi_receive *x)
+{
+	void* mop = max_jit_obex_adornment_get(x, _jit_sym_jit_mop);
+	jit_object_method(x->jitObject, _jit_sym_matrix_calc, jit_object_method(mop, _jit_sym_getinputlist), jit_object_method(mop, _jit_sym_getoutputlist));
+	max_jit_mop_outputmatrix(x);
+}
 
 
 void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x)
