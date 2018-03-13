@@ -287,6 +287,11 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
+# XCode project files
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
 bin
 inter
 externals
