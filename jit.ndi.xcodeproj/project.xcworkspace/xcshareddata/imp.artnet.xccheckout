@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>FDE3A86F-F520-4506-B51B-4A9E8D89A7A5</string>
+	<key>IDESourceControlProjectName</key>
+	<string>imp.artnet</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>2AF947B8-DA0E-47C3-91E0-A91F68DE0044</key>
+		<string>https://github.com/impsnldavid/impmaxobjects.git</string>
+		<key>84E1AFE1-29BE-4399-A1CD-E296AA46DFB2</key>
+		<string>https://github.com/Cycling74/max6-sdk</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>imp.artnet/imp.artnet.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>2AF947B8-DA0E-47C3-91E0-A91F68DE0044</key>
+		<string>../../..</string>
+		<key>84E1AFE1-29BE-4399-A1CD-E296AA46DFB2</key>
+		<string>../../../max6-sdk</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/impsnldavid/impmaxobjects.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>2AF947B8-DA0E-47C3-91E0-A91F68DE0044</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>2AF947B8-DA0E-47C3-91E0-A91F68DE0044</string>
+			<key>IDESourceControlWCCName</key>
+			<string>impmaxobjects</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>84E1AFE1-29BE-4399-A1CD-E296AA46DFB2</string>
+			<key>IDESourceControlWCCName</key>
+			<string>max6-sdk</string>
+		</dict>
+	</array>
+</dict>
+</plist>

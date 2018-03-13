@@ -228,7 +228,7 @@ t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName, t_atom_long numAudioChann
 	x->ndiAudioFrameInfo = NULL;
 	x->audioFramebufferPosition = 0;
 
-	x->receiveClock = clock_new(x, jit_ndi_send_receivedata);
+	x->receiveClock = clock_new(x, (method)jit_ndi_send_receivedata);
 
 	if (!jit_ndi_send_create_sender(x))
 	{

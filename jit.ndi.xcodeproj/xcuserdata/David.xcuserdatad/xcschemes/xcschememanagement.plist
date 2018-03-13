@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>jit.ndi.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>2FBBEAD608F335360078DB84</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>637FEBE72057ED2800CA1F89</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>638E86411BA6054200DFC009</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>63F998731BA45057007129D3</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>63F998941BA46400007129D3</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>63FE36EE1950740D00B07A04</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>63FE36F81950740F00B07A04</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>63FE37021950741000B07A04</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>63FE3711195074A100B07A04</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>63FE5194195394CF00B78770</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>

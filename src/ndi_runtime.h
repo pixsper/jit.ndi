@@ -21,6 +21,8 @@
 #include <jit.common.h>
 #include <Processing.NDI.Lib.h>
 
+#ifdef WIN_VERSION
+
 inline void free_ndi_runtime(HMODULE* runtimeModule)
 {
 	if (*runtimeModule != NULL)
@@ -30,53 +32,80 @@ inline void free_ndi_runtime(HMODULE* runtimeModule)
 	}
 }
 
-inline bool load_ndi_runtime(HMODULE* runtimeModule, NDIlib_v3** ndiLib)
+inline bool load_ndi_runtime(NDIlib_v3** ndiLib)
 {
-	*runtimeModule = NULL;
-	*ndiLib = NULL;
+    *ndiLib = NULL;
+    
+    HMODULE runtimeModule = NULL;
+    
+    LPSTR runtimeDir[MAX_PATH];
+    
+    const DWORD runtimeDirLen = GetEnvironmentVariable(NDILIB_REDIST_FOLDER, runtimeDir, MAX_PATH);
+    
+    if (runtimeDirLen == 0)
+    {
+        error("Unable to load jit.ndi externals as NDI Runtime is not installed, please download and install from '%s' and restart Max.", NDILIB_REDIST_URL);
+        return false;
+    }
+    
+    LPSTR runtimeDllPath[MAX_PATH];
+    
+    snprintf(runtimeDllPath, MAX_PATH, "%s\\%s", runtimeDir, NDILIB_LIBRARY_NAME);
+    
+    *runtimeModule = LoadLibrary(runtimeDllPath);
+    if (*runtimeModule == NULL)
+    {
+        error("Unable to load NDI runtime from path '%s'. Please download and reinstall NDI runtime from '%s' and restart Max", runtimeDllPath, NDILIB_REDIST_URL);
+        return false;
+    }
+    
+    quittask_install(free_ndi_runtime, runtimeModule);
+    
+    FARPROC loadFunction = GetProcAddress(runtimeModule, "NDIlib_v3_load");
+    
+    if (loadFunction == NULL)
+    {
+        error("Unable to load NDI functions from DLL at path '%s'. Please download and reinstall NDI runtime from '%s' and restart Max", runtimeDllPath, NDILIB_REDIST_URL);
+        return false;
+    }
+    
+    *ndiLib = (NDIlib_v3*)loadFunction();
+    
+    return true;
+}
 
-#ifdef WIN_VERSION
-	
-	LPSTR runtimeDir[MAX_PATH];
-
-	const DWORD runtimeDirLen = GetEnvironmentVariable(NDILIB_REDIST_FOLDER, runtimeDir, MAX_PATH);
-
-	if (runtimeDirLen == 0)
-	{
-		error("Unable to load jit.ndi externals as NDI Runtime is not installed, please download and install from '%s' and restart Max.", NDILIB_REDIST_URL);
-		return false;
-	}
-
-	LPSTR runtimeDllPath[MAX_PATH];
-
-	snprintf(runtimeDllPath, MAX_PATH, "%s\\%s", runtimeDir, NDILIB_LIBRARY_NAME);
-
-	*runtimeModule = LoadLibrary(runtimeDllPath);
-	if (*runtimeModule == NULL)
-	{
-		error("Unable to load NDI runtime from path '%s'. Please download and reinstall NDI runtime from '%s' and restart Max", runtimeDllPath, NDILIB_REDIST_URL);
-		return false;
-	}
-
-	quittask_install(free_ndi_runtime, runtimeModule);
-
-	FARPROC loadFunction = GetProcAddress(*runtimeModule, "NDIlib_v3_load");
-
-	if (loadFunction == NULL)
-	{
-		error("Unable to load NDI functions from DLL at path '%s'. Please download and reinstall NDI runtime from '%s' and restart Max", runtimeDllPath, NDILIB_REDIST_URL);
-		return false;
-	}
-
-	*ndiLib = (NDIlib_v3*)loadFunction();
-	 
 #else
 
-	// TODO: Load NDI runtime for Mac
+#include <dlfcn.h>
+
+bool load_ndi_runtime(NDIlib_v3** ndiLib)
+{
+    char ndiRuntimePath[MAX_PATH_CHARS];
+    
+    const char* ndiRuntimeDirPath = getenv("NDI_RUNTIME_DIR_V3");
+    if (ndiRuntimeDirPath)
+        snprintf(ndiRuntimePath, MAX_PATH_CHARS, "%s/libndi.dylib", ndiRuntimeDirPath);
+    else
+        strncpy(ndiRuntimePath, "libndi.3.dylib", MAX_PATH_CHARS); // The standard versioning scheme on Linux based systems using sym links
+    
+    void* ndiLibHandle = dlopen(ndiRuntimePath, RTLD_LOCAL | RTLD_LAZY);
+    
+    const NDIlib_v3* (*NDIlib_v3_load)(void) = NULL;
+    if (ndiLibHandle)
+        *((void**)&NDIlib_v3_load) = dlsym(ndiLibHandle, "NDIlib_v3_load");
+    
+    if (!NDIlib_v3_load)
+    {
+        error("Unable to load NDI runtime library. Please download and/or reinstall NDI runtime from '%s' and restart Max", ndiRuntimePath, NDILIB_REDIST_URL);
+        return false;
+    }
+    
+    *ndiLib = (NDIlib_v3*)NDIlib_v3_load();
+    
+    return true;
+}
 
 #endif
 
-	return true;
-}
 
 #endif // H_JIT_NDI_RUNTIME

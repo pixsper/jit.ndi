@@ -385,7 +385,6 @@ t_jit_err jit_ndi_receive_matrix_calc(t_jit_ndi_receive* x, void* inputs, void* 
 		return JIT_ERR_INVALID_PTR;
 	}
 
-out:
 	jit_object_method(outputMatrix, _jit_sym_lock, lock);
 	jit_object_method(x->matrix, _jit_sym_lock, inputLock);
 	return err;
@@ -400,7 +399,7 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 	if (x->activeSourceId == NULL)
 		return;
 
-	NDIlib_recv_create_t receiverCreateDesc = { 0 };
+    NDIlib_recv_create_t receiverCreateDesc = { 0 };
 	receiverCreateDesc.source_to_connect_to.p_ndi_name = x->activeSourceId->s_name;
 
 	// Seems like we should be using NDIlib_recv_color_format_RGBX_RGBA instead below, but causes internal NDI SDK crash
@@ -482,12 +481,12 @@ void jit_ndi_receive_threadproc(t_jit_ndi_receive* x)
 
 						break;
 
-					case NDIlib_FourCC_type_UYVY:
-
-						const int length = videoFrame.yres * videoFrame.line_stride_in_bytes;
-						for(int i = 0; i < length; i++)
+                    case NDIlib_FourCC_type_UYVY:
+                    {
+                        const int length = videoFrame.yres * videoFrame.line_stride_in_bytes;
+						for (int i = 0; i < length; i++)
 								*(dst++) = *(src++);
-
+                    }
 						break;
 
 					default:
@@ -651,7 +650,7 @@ t_symbol* pack_source_id(t_symbol* hostName, t_symbol* sourceName)
 	const size_t bufferLength = strlen(hostName->s_name) + strlen(sourceName->s_name) + 4;
 	char* buffer = jit_newptr(bufferLength);
 
-	sprintf_s(buffer, bufferLength, "%s (%s)", hostName->s_name, sourceName->s_name);
+	snprintf(buffer, bufferLength, "%s (%s)", hostName->s_name, sourceName->s_name);
 
 	t_symbol* sourceId = gensym(buffer);
 

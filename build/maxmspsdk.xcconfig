@@ -17,7 +17,7 @@ ARCHS = i386 x86_64
 
 // Paths
 C74SUPPORT = $(SRCROOT)/lib/max-sdk/source/c74support
-HEADER_SEARCH_PATHS = "$(C74SUPPORT)/max-includes" "$(C74SUPPORT)/msp-includes" "$(C74SUPPORT)/jit-includes"
+HEADER_SEARCH_PATHS = "$(C74SUPPORT)/max-includes" "$(C74SUPPORT)/msp-includes" "$(C74SUPPORT)/jit-includes" "$(SRCROOT)/lib/NewTek NDI SDK/Include"
 FRAMEWORK_SEARCH_PATHS = "$(C74SUPPORT)/max-includes" "$(C74SUPPORT)/msp-includes" "$(C74SUPPORT)/jit-includes"
 DSTROOT = $(HOME)/Documents/Max 8/Packages/jit.ndi/externals
 // (This next path is relative to DSTROOT)

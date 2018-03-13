@@ -25,7 +25,6 @@
 
 #include "ndi_runtime.h"
 
-HMODULE runtimeModule;
 extern NDIlib_v3* ndiLib;
 
 typedef struct _max_jit_ndi_receive
@@ -70,7 +69,7 @@ t_class* max_jit_ndi_receive_class;
 
 void ext_main(void* r)
 {
-	if (!load_ndi_runtime(&runtimeModule, &ndiLib))
+	if (!load_ndi_runtime(&ndiLib))
 		return;
 
 	common_symbols_init();
