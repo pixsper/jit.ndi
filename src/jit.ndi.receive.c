@@ -16,9 +16,11 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 #include <jit.common.h>
+#include <max.jit.mop.h>
 
 #include <Processing.NDI.Lib.h>
-#include <max.jit.mop.h>
+#include <samplerate.h>
+
 
 #define DEFAULT_INTERNAL_MATRIX_WIDTH 1920
 #define DEFAULT_INTERNAL_MATRIX_HEIGHT 1080
@@ -54,15 +56,22 @@ typedef struct _jit_ndi_receive
 	t_jit_object* matrix;
 	int matrixWidth;
 	int matrixHeight;
+	NDIlib_FourCC_type_e lastFourCCType;
+
+	SRC_STATE* samplerateConverter;
+	double samplerate;
+	int audioBufferLength;
+	int audioBufferWritePosition;
+	int audioBufferReadPosition;
+	float* audioBuffer;
+	t_systhread_mutex audioMutex;
 
 	t_systhread receiveThread;
-	t_systhread_mutex receiveMutex;
 	bool isCancelThread;
-
-	t_systhread_mutex frameMutex;
 
 	t_symbol* attrHostName;
 	t_symbol* attrSourceName;
+	t_atom_long attrNumAudioChannels;
 
 	t_bool attrTallyOnProgram;
 	t_bool attrTallyOnPreview;
@@ -88,6 +97,9 @@ typedef struct _jit_ndi_receive
 
 } t_jit_ndi_receive;
 
+t_symbol* _sym_argb;
+t_symbol* _sym_uyvy;
+
 t_jit_err jit_ndi_receive_init();
 t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName, t_atom_long numAudioChannels);
 void jit_ndi_receive_free(t_jit_ndi_receive* x);
@@ -98,14 +110,21 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x);
 void jit_ndi_receive_free_receiver(t_jit_ndi_receive* x);
 
 void jit_ndi_receive_threadproc(t_jit_ndi_receive* x);
-
 void jit_ndi_receive_resize_internal_matrix(t_jit_ndi_receive *x, long width, long height);
+
+void jit_ndi_receive_process_video(t_jit_ndi_receive* x, const NDIlib_video_frame_v2_t* videoFrame);
+
+void jit_ndi_receive_startaudio(t_jit_ndi_receive* x, double samplerate);
+void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampleFrames);
+void jit_ndi_receive_process_audio(t_jit_ndi_receive* x, const NDIlib_audio_frame_v2_t* audioFrame, int inputOffset);
 
 void jit_ndi_receive_refreshsources(t_jit_ndi_receive* x);
 void jit_ndi_receive_update_tally(t_jit_ndi_receive* x);
 
 t_jit_err jit_ndi_receive_setattr_hostname(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_receive_setattr_sourcename(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_receive_setattr_colormode(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_receive_setattr_lowbandwidth(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_receive_setattr_tally_onprogram(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_receive_setattr_tally_onpreview(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
 
@@ -118,6 +137,9 @@ void* _jit_ndi_receive_class;
 
 t_jit_err jit_ndi_receive_init()
 {
+	_sym_argb = gensym("argb");
+	_sym_uyvy = gensym("uyvy");
+
 	_jit_ndi_receive_class = jit_class_new("jit_ndi_receive",
 	                                    (method)jit_ndi_receive_new, (method)jit_ndi_receive_free,
 	                                    sizeof(t_jit_ndi_receive), A_DEFSYM, 0L);
@@ -128,6 +150,9 @@ t_jit_err jit_ndi_receive_init()
 	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_matrix_calc, "matrix_calc", A_CANT, 0L);
 
 	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_object_register, "register", A_CANT, 0L);
+
+	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_startaudio, "audio_start", A_CANT, 0L);
+	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_get_samples, "get_samples", A_CANT, 0L);
 
 	long attrflags = JIT_ATTR_GET_DEFER_LOW | JIT_ATTR_SET_USURP_LOW;
 
@@ -144,8 +169,8 @@ t_jit_err jit_ndi_receive_init()
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"NDI Source Name\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
 	
-	attr = jit_object_new(_jit_sym_jit_attr_offset, "color_mode", _jit_sym_char, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrColorMode));
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "colormode", _jit_sym_char, attrflags, 
+		(method)0L, (method)jit_ndi_receive_setattr_colormode, calcoffset(t_jit_ndi_receive, attrColorMode));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Color Mode\"");
 	object_addattr_parse(attr, "style", _jit_sym_symbol, 0, "enumindex");
@@ -153,7 +178,7 @@ t_jit_err jit_ndi_receive_init()
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "3");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "low_bandwidth", _jit_sym_char, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrLowBandwidth));
+		(method)0L, (method)jit_ndi_receive_setattr_lowbandwidth, calcoffset(t_jit_ndi_receive, attrLowBandwidth));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Low Bandwidth Mode\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
@@ -289,16 +314,33 @@ t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName,
 	if (!((x = (t_jit_ndi_receive *)jit_object_alloc(_jit_ndi_receive_class))))
 		return NULL;
 
-	jit_ndi_receive_resize_internal_matrix(x, DEFAULT_INTERNAL_MATRIX_WIDTH, DEFAULT_INTERNAL_MATRIX_HEIGHT);
+	x->lastFourCCType = -1;
+	jit_ndi_receive_resize_internal_matrix(x, DEFAULT_INTERNAL_MATRIX_WIDTH / (x->attrColorMode == COLORMODE_UYVY ? 2 : 1), DEFAULT_INTERNAL_MATRIX_HEIGHT);
 
 	x->ndiReceiver = NULL;
 
 	x->receiveThread = NULL;
 	x->isCancelThread = false;
-	systhread_mutex_new(&x->receiveMutex, 0);
+
+	if (numAudioChannels > 0)
+	{
+		int error;
+		x->samplerateConverter = src_new(SRC_SINC_FASTEST, 1, &error);
+
+		if (error != 0)
+			jit_object_error((t_object*)x, "Failed to initialize sample rate converter: %s", src_strerror(error));
+	}
+	
+	x->samplerate = 0;
+	x->audioBufferLength = 0;
+	x->audioBufferWritePosition = 0;
+	x->audioBufferReadPosition = 0;
+	x->audioBuffer = NULL;
+	systhread_mutex_new(&x->audioMutex, SYSTHREAD_MUTEX_RECURSIVE);
 
 	x->attrHostName = hostName;
 	x->attrSourceName = sourceName;
+	x->attrNumAudioChannels = numAudioChannels;
 	x->attrTallyOnProgram = false;
 	x->attrTallyOnPreview = false;
 
@@ -341,7 +383,12 @@ void jit_ndi_receive_free(t_jit_ndi_receive* x)
 
 	jit_ndi_receive_free_receiver(x);
 
-	systhread_mutex_free(x->receiveMutex);
+	if (x->audioBuffer != NULL)
+		sysmem_freeptr(x->audioBuffer);
+
+	src_delete(x->samplerateConverter);
+
+	systhread_mutex_free(x->audioMutex);
 
 	jit_object_free(x->matrix);
 }
@@ -399,7 +446,7 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 	if (x->activeSourceId == NULL)
 		return;
 
-    NDIlib_recv_create_t receiverCreateDesc = { 0 };
+	NDIlib_recv_create_t receiverCreateDesc = { 0 };
 	receiverCreateDesc.source_to_connect_to.p_ndi_name = x->activeSourceId->s_name;
 
 	// Seems like we should be using NDIlib_recv_color_format_RGBX_RGBA instead below, but causes internal NDI SDK crash
@@ -449,56 +496,12 @@ void jit_ndi_receive_threadproc(t_jit_ndi_receive* x)
 				break;
 
 			case NDIlib_frame_type_video:
-			{
-				long lock = (long)jit_object_method(x->matrix,_jit_sym_lock, 1);
-				
-				if (x->matrixWidth != videoFrame.xres || x->matrixHeight != videoFrame.yres)
-					jit_ndi_receive_resize_internal_matrix(x, videoFrame.xres, videoFrame.yres);
-
-				char* data;
-				jit_object_method(x->matrix,_jit_sym_getdata, &data);
-
-				uint8_t* src = videoFrame.p_data;
-				uint8_t* dst = (uint8_t*)data;
-
-				switch(videoFrame.FourCC)
-				{
-					case NDIlib_FourCC_type_BGRX:
-					case NDIlib_FourCC_type_BGRA:
-
-						for(int dy = 0; dy < videoFrame.yres; dy++)
-						{
-							for(int dx = 0; dx < videoFrame.xres; dx++)
-							{
-								*(dst++) = videoFrame.FourCC == NDIlib_FourCC_type_BGRA ? *(src + 3) : 255;
-								*(dst++) = *(src + 2);
-								*(dst++) = *(src + 1);
-								*(dst++) = *(src);
-
-								src += 4;
-							}
-						}
-
-						break;
-
-                    case NDIlib_FourCC_type_UYVY:
-                    {
-                        const int length = videoFrame.yres * videoFrame.line_stride_in_bytes;
-						for (int i = 0; i < length; i++)
-								*(dst++) = *(src++);
-                    }
-						break;
-
-					default:
-						break;
-				}
-
-				jit_object_method(x->matrix,_jit_sym_lock, lock);
-			}
+				jit_ndi_receive_process_video(x, &videoFrame);
 				ndiLib->NDIlib_recv_free_video_v2(x->ndiReceiver, &videoFrame);
 				break;
 
 			case NDIlib_frame_type_audio:
+				jit_ndi_receive_process_audio(x, &audioFrame, 0);
 				ndiLib->NDIlib_recv_free_audio_v2(x->ndiReceiver, &audioFrame);
 				break;
 
@@ -529,6 +532,129 @@ void jit_ndi_receive_resize_internal_matrix(t_jit_ndi_receive *x, long width, lo
 		x->matrix = jit_object_new(_jit_sym_jit_matrix, &info);
 	else
 		jit_object_method(x->matrix, _jit_sym_setinfo, &info);
+}
+
+void jit_ndi_receive_process_video(t_jit_ndi_receive* x, const NDIlib_video_frame_v2_t* videoFrame)
+{
+	long lock = (long)jit_object_method(x->matrix,_jit_sym_lock, 1);
+				
+	const int targetWidth = videoFrame->xres / (videoFrame->FourCC == NDIlib_FourCC_type_UYVY ? 2 : 1);
+
+	if (x->matrixWidth != targetWidth || x->matrixHeight != videoFrame->yres || x->lastFourCCType != videoFrame->FourCC)
+		jit_ndi_receive_resize_internal_matrix(x, targetWidth, videoFrame->yres);
+
+	x->lastFourCCType = videoFrame->FourCC;
+
+	char* data;
+	jit_object_method(x->matrix,_jit_sym_getdata, &data);
+
+	if (data == NULL)
+		return true;
+
+	uint8_t* src = videoFrame->p_data;
+	uint8_t* dst = (uint8_t*)data;
+
+	switch(videoFrame->FourCC)
+	{
+		case NDIlib_FourCC_type_BGRX:
+		case NDIlib_FourCC_type_BGRA:
+
+			for(int dy = 0; dy < videoFrame->yres; dy++)
+			{
+				for(int dx = 0; dx < videoFrame->xres; dx++)
+				{
+					*(dst++) = videoFrame->FourCC == NDIlib_FourCC_type_BGRA ? *(src + 3) : 255;
+					*(dst++) = *(src + 2);
+					*(dst++) = *(src + 1);
+					*(dst++) = *(src);
+
+					src += 4;
+				}
+			}
+
+			break;
+
+		case NDIlib_FourCC_type_UYVY:
+		{
+			const int length = videoFrame->yres * videoFrame->line_stride_in_bytes;
+			for(int i = 0; i < length; i++)
+				*(dst++) = *(src++);
+		}
+			break;
+
+		default:
+			break;
+	}
+
+	jit_object_method(x->matrix,_jit_sym_lock, lock);
+}
+
+
+void jit_ndi_receive_startaudio(t_jit_ndi_receive* x, double samplerate)
+{
+	systhread_mutex_lock(x->audioMutex);
+
+	x->samplerate = samplerate;
+
+	if (x->audioBuffer != NULL)
+		sysmem_freeptr(x->audioBuffer);
+
+	x->audioBufferWritePosition = 0;
+	x->audioBufferReadPosition = 0;
+	x->audioBufferLength = x->samplerate * 2;
+	x->audioBuffer = (float*)sysmem_newptr(x->audioBufferLength * sizeof(float));
+
+	systhread_mutex_unlock(x->audioMutex);
+}
+
+void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampleFrames)
+{
+	systhread_mutex_lock(x->audioMutex);
+
+	if (x->audioBufferWritePosition - x->audioBufferReadPosition >= sampleFrames)
+	{
+		double* dst = outs[0];
+
+		while(x->audioBufferReadPosition < x->audioBufferWritePosition)
+			*dst++ = *(x->audioBuffer + (x->audioBufferReadPosition++ % x->audioBufferLength));
+	}
+
+	x->audioBufferReadPosition %= x->audioBufferLength;
+	x->audioBufferWritePosition %= x->audioBufferLength;
+
+	systhread_mutex_unlock(x->audioMutex);
+}
+
+void jit_ndi_receive_process_audio(t_jit_ndi_receive* x, const NDIlib_audio_frame_v2_t* audioFrame, int inputOffset)
+{
+	if (x->samplerateConverter == NULL || x->samplerate == 0)
+		return;
+
+	systhread_mutex_lock(x->audioMutex);
+
+	SRC_DATA data = { 0 };
+	data.data_in = audioFrame->p_data + inputOffset;
+	data.input_frames = audioFrame->no_samples - inputOffset;
+	data.data_out = x->audioBuffer + (x->audioBufferWritePosition & x->audioBufferLength);
+	data.output_frames = x->audioBufferLength - (x->audioBufferWritePosition & x->audioBufferLength);
+	data.src_ratio = x->samplerate / audioFrame->sample_rate;
+	data.end_of_input = 0;
+
+	
+	const int error = src_process(x->samplerateConverter, &data);
+
+	if (error != 0)
+	{
+		jit_object_error((t_object*)x, "Samplerate conversion error: %s", src_strerror(error));
+		return;
+	}
+
+	x->audioBufferWritePosition += data.output_frames_gen;
+
+	if (x->audioBufferWritePosition == x->audioBufferLength)
+		jit_ndi_receive_process_audio(x, audioFrame, data.input_frames_used);
+
+	systhread_mutex_unlock(x->audioMutex);
 }
 
 
@@ -603,6 +729,47 @@ t_jit_err jit_ndi_receive_setattr_sourcename(t_jit_ndi_receive* x, void* attr, l
 	{
 		x->attrSourceName = s;
 		x->activeSourceId = pack_source_id(x->attrHostName, x->attrSourceName);
+		jit_ndi_receive_create_receiver(x);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_colormode(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv)
+{
+	if (argc < 1)
+		return JIT_ERR_NONE;
+
+	ColorMode updatedValue = x->attrColorMode;
+
+	t_symbol* s = jit_atom_getsym(argv);
+
+	if (s == _sym_argb)
+		updatedValue = COLORMODE_ARGB;
+	else if (s == _sym_uyvy)
+		updatedValue = COLORMODE_UYVY;
+	else
+		updatedValue = CLAMP(jit_atom_getlong(argv), COLORMODE_ARGB, COLORMODE_UYVY);
+
+	if (x->attrColorMode != updatedValue)
+	{
+		x->attrColorMode = updatedValue;
+		jit_ndi_receive_create_receiver(x);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_lowbandwidth(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv)
+{
+	if (argc < 1)
+		return JIT_ERR_NONE;
+
+	const t_bool v = jit_atom_getlong(argv) > 0;
+
+	if (v != x->attrLowBandwidth)
+	{
+		x->attrLowBandwidth = v;
 		jit_ndi_receive_create_receiver(x);
 	}
 

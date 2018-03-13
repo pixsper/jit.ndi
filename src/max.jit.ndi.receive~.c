@@ -22,6 +22,7 @@
 #include <max.jit.mop.h>
 
 #include <Processing.NDI.Lib.h>
+#include <samplerate.h>
 
 #include "ndi_runtime.h"
 
@@ -41,6 +42,8 @@ typedef struct _max_jit_ndi_receive
 } t_max_jit_ndi_receive;
 
 t_symbol* _sym_jit_ndi_receive;
+t_symbol* _sym_audio_start;
+t_symbol* _sym_get_samples;
 t_symbol* _sym_ptz_autofocus;
 t_symbol* _sym_ptz_focus;
 t_symbol* _sym_ptz_whitebalancemode;
@@ -74,6 +77,8 @@ void ext_main(void* r)
 
 	common_symbols_init();
 	_sym_jit_ndi_receive = gensym("jit_ndi_receive");
+	_sym_audio_start = gensym("audio_start");
+	_sym_get_samples = gensym("get_samples");
 	_sym_ptz_autofocus = gensym("ptz_autofocus");
 	_sym_ptz_focus = gensym("ptz_focus");
 	_sym_ptz_whitebalancemode = gensym("ptz_whitebalancemode");
@@ -146,7 +151,10 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 		}
 	}
 
-	dsp_setup((t_pxobject*)x, x->numAudioChannels);
+	dsp_setup((t_pxobject*)x, 0);
+
+	for(int i = 0; i < x->numAudioChannels; i++)
+		outlet_new((t_object * )x, "signal");
 
 	// instantiate Jitter object with dest_name arg
 	if (!((x->jitObject = jit_object_new(_sym_jit_ndi_receive, x->hostName,  x->sourceName, x->numAudioChannels))))
@@ -169,6 +177,7 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 void max_jit_ndi_receive_free(t_max_jit_ndi_receive* x)
 {
 	dsp_free((t_pxobject *)x);
+
 	max_jit_mop_free(x);
 	jit_object_free(max_jit_obex_jitob_get(x));
 	max_jit_object_free(x);
@@ -240,10 +249,12 @@ void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x)
 void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short* count, double samplerate,
                                long maxvectorsize, long flags)
 {
+	object_method_direct(void, (t_jit_object*, double), x->jitObject, _sym_audio_start, samplerate);
 	object_method(dsp64, gensym("dsp_add64"), x, max_jit_ndi_receive_perform64, 0, NULL);
 }
 
 void max_jit_ndi_receive_perform64(t_max_jit_ndi_receive* x, t_object* dsp64, double** ins, long numins, double** outs,
                                    long numouts, long sampleframes, long flags, void* userparam)
 {
+	jit_object_method(x->jitObject, _sym_get_samples, outs, sampleframes);
 }

@@ -52,8 +52,8 @@ inline bool load_ndi_runtime(NDIlib_v3** ndiLib)
     
     snprintf(runtimeDllPath, MAX_PATH, "%s\\%s", runtimeDir, NDILIB_LIBRARY_NAME);
     
-    *runtimeModule = LoadLibrary(runtimeDllPath);
-    if (*runtimeModule == NULL)
+    runtimeModule = LoadLibrary(runtimeDllPath);
+    if (runtimeModule == NULL)
     {
         error("Unable to load NDI runtime from path '%s'. Please download and reinstall NDI runtime from '%s' and restart Max", runtimeDllPath, NDILIB_REDIST_URL);
         return false;
