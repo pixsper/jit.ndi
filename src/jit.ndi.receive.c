@@ -615,7 +615,7 @@ void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampl
 	{
 		double* dst = outs[0];
 
-		while(x->audioBufferReadPosition < x->audioBufferWritePosition)
+		for(int i = 0; i < sampleFrames; i++)
 			*dst++ = *(x->audioBuffer + (x->audioBufferReadPosition++ % x->audioBufferLength));
 	}
 

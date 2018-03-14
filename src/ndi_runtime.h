@@ -86,7 +86,7 @@ bool load_ndi_runtime(NDIlib_v3** ndiLib)
     if (ndiRuntimeDirPath)
         snprintf(ndiRuntimePath, MAX_PATH_CHARS, "%s/libndi.dylib", ndiRuntimeDirPath);
     else
-        strncpy(ndiRuntimePath, "libndi.3.dylib", MAX_PATH_CHARS); // The standard versioning scheme on Linux based systems using sym links
+        strncpy(ndiRuntimePath, NDILIB_LIBRARY_NAME, MAX_PATH_CHARS);
     
     void* ndiLibHandle = dlopen(ndiRuntimePath, RTLD_LOCAL | RTLD_LAZY);
     
@@ -96,7 +96,7 @@ bool load_ndi_runtime(NDIlib_v3** ndiLib)
     
     if (!NDIlib_v3_load)
     {
-        error("Unable to load NDI runtime library. Please download and/or reinstall NDI runtime from '%s' and restart Max", ndiRuntimePath, NDILIB_REDIST_URL);
+        error("Unable to load NDI runtime library. Please download and/or reinstall NDI runtime from '%s' and restart Max", NDILIB_REDIST_URL);
         return false;
     }
     

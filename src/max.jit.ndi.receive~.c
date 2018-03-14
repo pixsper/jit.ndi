@@ -153,9 +153,6 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 
 	dsp_setup((t_pxobject*)x, 0);
 
-	for(int i = 0; i < x->numAudioChannels; i++)
-		outlet_new((t_object * )x, "signal");
-
 	// instantiate Jitter object with dest_name arg
 	if (!((x->jitObject = jit_object_new(_sym_jit_ndi_receive, x->hostName,  x->sourceName, x->numAudioChannels))))
 	{
@@ -166,6 +163,9 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 
 	max_jit_mop_setup_simple(x, x->jitObject, 0, NULL);
 	max_jit_attr_args(x, argc, argv);
+
+	for(int i = 0; i < x->numAudioChannels; i++)
+		outlet_new((t_object * )x, "signal");
 
 	x->notifyName = jit_symbol_unique();
 	jit_object_method(x->jitObject, _jit_sym_register, x->notifyName);
@@ -219,31 +219,7 @@ void max_jit_ndi_outputmatrix(t_max_jit_ndi_receive *x)
 
 void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x)
 {
-	/*max_jit_ndi_receive_refreshsources(x);
-
-	long kc = 0;
-	t_symbol** keys = NULL;
-
-	hashtab_getkeys(x->sources, &kc, &keys);
-
-	if (kc == 0)
-	{
-	}
-	else
-	{
-		long ac = 0;
-		t_atom* av = NULL;
-
-		char alloc;
-		atom_alloc_array(kc, &ac, &av, &alloc);
-		if (!alloc)
-			return;
-
-		for (long i = 0; i < kc; ++i)
-			atom_setsym(av + i, keys[i]);
-
-		max_jit_obex_dumpout(x, gensym("sources"), ac, av);
-	}*/
+	
 }
 
 void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short* count, double samplerate,
