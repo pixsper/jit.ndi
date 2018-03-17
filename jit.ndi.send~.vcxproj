@@ -266,6 +266,7 @@
     <ClCompile Include="src\max.jit.ndi.send~.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="build\version.h" />
     <ClInclude Include="src\ndi_runtime.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

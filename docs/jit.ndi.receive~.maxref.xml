@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8' standalone='yes'?>
 <?xml-stylesheet href="./c74ref.xsl" type="text/xsl"?>
 
-<c74object name='jit.ndi.send~'>
+<c74object name='jit.ndi.receive~'>
 
-	<digest>Send video/audio over a network using the NDI protocol</digest>
+	<digest>Receive video/audio from a network using the NDI protocol</digest>
 	<description>
 		NDI is a protocol developed by NewTek for streaming video/audio over IP. It allows multiple video systems to identify and communicate with one another over IP, and to encode, transmit and receive many streams of high quality, low latency, frame-accurate video and audio in real-time. NDI can operate bi-directionally over a local area network, with many video streams on a shared connection. It's encoding algorithm is resolution and frame-rate independent, supporting 4K and beyond, along with 16 channels and more of floating-point audio. The protocol includes tools that implement video access rights, grouping, bi-directional metadata, IP commands, tally status and PTZ camera control. <br/>
 		<br/>
@@ -24,11 +24,16 @@
 	<!--ARGUMENTS-->
 
 	<objarglist>
-		<objarg name="name" optional="1" type="symbol">
-			<description>Sets the unique name of this NDI sender.</description>
+		<objarg name="hostname" optional="1" type="symbol">
+			<description>Sets the host name of the NDI sender to receive from.</description>
 		</objarg>
+		
+		<objarg name="name" optional="1" type="symbol">
+			<description>Sets the unique name of the NDI sender to receive from.</description>
+		</objarg>
+		
 		<objarg name="num_channels" optional="1" type="long">
-			<description>Sets the number of audio channels.</description>
+			<description>Sets the number of audio channels to receive</description>
 		</objarg>
 	</objarglist>
 
@@ -54,39 +59,39 @@
 
 	<attributelist>
 
-		<attribute name='name' get='1' set='0' type='symbol' size='1' >
-			<digest>Name of NDI sender</digest>
-			<description>The unique ID which NDI receivers should use to receive video/audio from this sender. Can only be set by argument at object initialization.</description>
+		<attribute name='hostname' get='1' set='1' type='symbol' size='1' >
+			<digest>Host name of NDI sender to receive from</digest>
+			<description>Host name of the NDI sender to receive from. This can be set even if the host does not currently exist or if it is not currently sending.</description>
+		</attribute>
+	
+		<attribute name='name' get='1' set='1' type='symbol' size='1' >
+			<digest>Name of NDI sender to receive from</digest>
+			<description>Name of the NDI sender to receive from. This can be set even if the host does not currently exist or if it is not currently sending.</description>
 		</attribute>
 		
 		<attribute name='num_channels' get='1' set='0' type='symbol' size='1' >
 			<digest>Number of audio channels</digest>
-			<description>The number of audio channels which will be sent from this sender. Can only be set by argument at object initialization.</description>
+			<description>The number of audio channels which will be received from the NDI sender. Can only be set by argument at object initialization.</description>
 		</attribute>
 	
 		<attribute name='colormode' get='1' set='1' type='long' size='1' >
-			<digest>Input matrices color encoding</digest>
-			<description>Input matrices color encoding. If set to ARGB then object will internally convert to UVYV as all NDI video is sent using this format.</description>
+			<digest>Output matrices color encoding</digest>
+			<description>Output matrices color encoding. If set to ARGB then object will internally convert from UVYV as all NDI video is sent using this format.</description>
 		</attribute>
 		
-		<attribute name='framerate' get='1' set='1' type='long' size='1' >
-			<digest>NDI transmission framerate</digest>
-			<description>The framerate at which the input matrix is sent via NDI. Note that this is not connected to the rate at which the matrix is received at the inlet.</description>
+		<attribute name='low_bandwidth' get='1' set='1' type='long' size='1' >
+			<digest>Low bandwidth mode</digest>
+			<description>Low bandwidth mode. When enabled NDI will attempt to reduce the bandwidth used at the expense of image quality.</description>
 		</attribute>
 		
-		<attribute name='ptz_enable' get='1' set='1' type='long' size='1' >
-			<digest>PTZ control enable</digest>
-			<description>Whether PTZ control is allowed for this source. If enabled PTZ attribute values will be output from the dump outlet.</description>
-		</attribute>
-		
-		<attribute name='tally_onpreview' get='1' set='0' type='long' size='1' >
+		<attribute name='tally_onpreview' get='1' set='1' type='long' size='1' >
 			<digest>Tally preview status</digest>
-			<description>The tally status of the source indicating whether any connected receivers are displaying the source on preview.</description>
+			<description>The tally status indicating whether this receiver is displaying the source on preview. Will be communicated back over the network to the sender.</description>
 		</attribute>
 		
-		<attribute name='tally_onpreview' get='1' set='0' type='long' size='1' >
+		<attribute name='tally_onpreview' get='1' set='1' type='long' size='1' >
 			<digest>Tally program status</digest>
-			<description>The tally status of the source indicating whether any connected receivers are displaying the source on program.</description>
+			<description>The tally status indicating whether this receiver is displaying the source on program. Will be communicated back over the network to the sender.</description>
 		</attribute>
 
 	</attributelist>
