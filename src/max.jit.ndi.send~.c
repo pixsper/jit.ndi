@@ -44,6 +44,7 @@ t_symbol* _sym_audio_start;
 t_symbol* _sym_add_samples;
 t_symbol* _sym_tally_onprogram;
 t_symbol* _sym_tally_onpreview;
+t_symbol* _sym_runtimeurl;
 
 t_jit_err jit_ndi_send_init();
 
@@ -54,6 +55,8 @@ void max_jit_ndi_send_notify(t_max_jit_ndi_send* x, t_symbol* s, t_symbol* msg, 
 
 void max_jit_ndi_send_dsp64(t_max_jit_ndi_send* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
 void max_jit_ndi_send_perform64(t_max_jit_ndi_send* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
+
+void max_jit_ndi_send_getruntimeurl(t_max_jit_ndi_send* x);
 
 t_class* max_jit_ndi_send_class;
 
@@ -69,6 +72,7 @@ void ext_main(void* r)
 	_sym_add_samples = gensym("add_samples");
 	_sym_tally_onprogram = gensym("tally_onprogram");
 	_sym_tally_onpreview = gensym("tally_onpreview");
+	_sym_runtimeurl = gensym("runtimeurl");
 
 	jit_ndi_send_init();
 
@@ -85,6 +89,8 @@ void ext_main(void* r)
 	class_addmethod(maxclass, (method)max_jit_mop_assist, "assist", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_notify, "notify", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_dsp64, "dsp64", A_CANT, 0);
+
+	class_addmethod(maxclass, (method)max_jit_ndi_send_getruntimeurl, "getruntimeurl", 0);
 
 
 	class_dspinit(maxclass);
@@ -185,4 +191,11 @@ void max_jit_ndi_send_dsp64(t_max_jit_ndi_send* x, t_object* dsp64, short* count
 void max_jit_ndi_send_perform64(t_max_jit_ndi_send* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
 	jit_object_method(x->jitObject, _sym_add_samples, ins, sampleframes, 0);
+}
+
+void max_jit_ndi_send_getruntimeurl(t_max_jit_ndi_send* x)
+{
+	t_atom argv;
+	atom_setsym(&argv, gensym(NDILIB_REDIST_URL));
+	max_jit_obex_dumpout(x, _sym_runtimeurl, 1, &argv);
 }
