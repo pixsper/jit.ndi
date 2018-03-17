@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ndi_runtime.h" />
+    <ClInclude Include="build\version.h" />
   </ItemGroup>
 </Project>

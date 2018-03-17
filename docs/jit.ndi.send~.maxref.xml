@@ -41,6 +41,11 @@
 			<digest>Outputs the URL for the NDI runtime from the dump outlet.</digest>
 			<description>Outputs the URL for the NDI runtime download for the current platform from the dump outlet. This is platform specific.</description>
 		</method>
+		
+		<method name='version'>
+			<digest>Prints the jit.ndi package version to the Max window.</digest>
+			<description>Prints the jit.ndi package version to the Max window.</description>
+		</method>
 
 	</methodlist>
 

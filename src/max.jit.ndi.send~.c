@@ -24,6 +24,7 @@
 #include <Processing.NDI.Lib.h>
 
 #include "ndi_runtime.h"
+#include "build/version.h"
 
 extern NDIlib_v3* ndiLib;
 
@@ -56,6 +57,7 @@ void max_jit_ndi_send_notify(t_max_jit_ndi_send* x, t_symbol* s, t_symbol* msg, 
 void max_jit_ndi_send_dsp64(t_max_jit_ndi_send* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
 void max_jit_ndi_send_perform64(t_max_jit_ndi_send* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
 
+void max_jit_ndi_send_printversion(t_max_jit_ndi_send* x);
 void max_jit_ndi_send_getruntimeurl(t_max_jit_ndi_send* x);
 
 t_class* max_jit_ndi_send_class;
@@ -90,6 +92,7 @@ void ext_main(void* r)
 	class_addmethod(maxclass, (method)max_jit_ndi_send_notify, "notify", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_dsp64, "dsp64", A_CANT, 0);
 
+	class_addmethod(maxclass, (method)max_jit_ndi_send_printversion, "version", 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_getruntimeurl, "getruntimeurl", 0);
 
 
@@ -191,6 +194,12 @@ void max_jit_ndi_send_dsp64(t_max_jit_ndi_send* x, t_object* dsp64, short* count
 void max_jit_ndi_send_perform64(t_max_jit_ndi_send* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
 	jit_object_method(x->jitObject, _sym_add_samples, ins, sampleframes, 0);
+}
+
+void max_jit_ndi_send_printversion(t_max_jit_ndi_send* x)
+{
+	object_post((t_object*)x, "jit.ndi.send~ V%ld.%ld.%ld - Copyright (C) 2018 David Butler / The Impersonal Stereo",
+		JIT_NDI_VERSION_MAJOR, JIT_NDI_VERSION_MINOR, JIT_NDI_VERSION_BUGFIX);
 }
 
 void max_jit_ndi_send_getruntimeurl(t_max_jit_ndi_send* x)

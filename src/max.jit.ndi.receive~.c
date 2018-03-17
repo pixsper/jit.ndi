@@ -1,3 +1,4 @@
+
 //
 // This file is part of jit.ndi https://github.com/impsnldavid/jit.ndi
 // Copyright (c) 2018 David Butler / The Impersonal Stereo
@@ -25,6 +26,7 @@
 #include <samplerate.h>
 
 #include "ndi_runtime.h"
+#include "build/version.h"
 
 extern NDIlib_v3* ndiLib;
 
@@ -67,6 +69,8 @@ void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short*
 void max_jit_ndi_receive_perform64(t_max_jit_ndi_receive* x, t_object* dsp64, double** ins, long numins, double** outs,
                                    long numouts, long sampleframes, long flags, void* userparam);
 
+void max_jit_ndi_receive_printversion(t_max_jit_ndi_receive* x);
+
 t_class* max_jit_ndi_receive_class;
 
 
@@ -105,6 +109,8 @@ void ext_main(void* r)
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_notify, "notify", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_dsp64, "dsp64", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_getsourcelist, "getsourcelist", 0);
+
+	class_addmethod(maxclass, (method)max_jit_ndi_receive_printversion, "version", 0);
 
 	max_jit_class_addmethod_usurp_low(maxclass, (method)max_jit_ndi_outputmatrix, "outputmatrix");
 
@@ -233,4 +239,10 @@ void max_jit_ndi_receive_perform64(t_max_jit_ndi_receive* x, t_object* dsp64, do
                                    long numouts, long sampleframes, long flags, void* userparam)
 {
 	jit_object_method(x->jitObject, _sym_get_samples, outs, sampleframes);
+}
+
+void max_jit_ndi_receive_printversion(t_max_jit_ndi_receive* x)
+{
+	object_post((t_object*)x, "jit.ndi.receive~ V%ld.%ld.%ld - Copyright (C) 2018 David Butler / The Impersonal Stereo",
+		JIT_NDI_VERSION_MAJOR, JIT_NDI_VERSION_MINOR, JIT_NDI_VERSION_BUGFIX);
 }
