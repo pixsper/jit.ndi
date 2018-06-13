@@ -445,7 +445,7 @@ void jit_ndi_send_create_video_frame_struct(t_jit_ndi_send* x)
 
 	x->ndiVideoFrameInfo->frame_format_type = NDIlib_frame_format_type_progressive;
 	x->ndiVideoFrameInfo->timecode = NDIlib_send_timecode_synthesize;
-	x->ndiVideoFrameInfo->timestamp = NDIlib_send_timecode_empty;
+	x->ndiVideoFrameInfo->timestamp = 0;
 	x->ndiVideoFrameInfo->p_metadata = NULL;
 }
 
@@ -495,7 +495,7 @@ void jit_ndi_send_create_audio_frame_struct(t_jit_ndi_send* x, double samplerate
 
 		x->ndiAudioFrameInfo->no_channels = x->attrNumAudioChannels;
 		x->ndiAudioFrameInfo->timecode = NDIlib_send_timecode_synthesize;
-		x->ndiAudioFrameInfo->timestamp = NDIlib_send_timecode_empty;
+		x->ndiAudioFrameInfo->timestamp = 0;
 		x->ndiAudioFrameInfo->p_metadata = NULL;
 	}
 

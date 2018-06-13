@@ -446,7 +446,7 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 	if (x->activeSourceId == NULL)
 		return;
 
-	NDIlib_recv_create_t receiverCreateDesc = { 0 };
+	NDIlib_recv_create_v3_t receiverCreateDesc = { 0 };
 	receiverCreateDesc.source_to_connect_to.p_ndi_name = x->activeSourceId->s_name;
 
 	// Seems like we should be using NDIlib_recv_color_format_RGBX_RGBA instead below, but causes internal NDI SDK crash
@@ -454,7 +454,7 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 	receiverCreateDesc.allow_video_fields = false;
 	receiverCreateDesc.bandwidth = x->attrLowBandwidth ? NDIlib_recv_bandwidth_lowest : NDIlib_recv_bandwidth_highest;
 
-	x->ndiReceiver = ndiLib->NDIlib_recv_create_v2(&receiverCreateDesc);
+	x->ndiReceiver = ndiLib->NDIlib_recv_create_v3(&receiverCreateDesc);
 	if (x->ndiReceiver == NULL)
 	{
 		object_error((t_object*)x, "Failed to connect to source '%s'", x->attrSourceName->s_name);
