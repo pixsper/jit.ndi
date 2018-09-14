@@ -232,7 +232,7 @@ t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName, t_atom_long numAudioChann
 
 	if (!jit_ndi_send_create_sender(x))
 	{
-		object_error((t_object*)x, "Failed to create NDI sender, sender name '%s' may already be in use", sourceName->s_name);
+		jit_object_error((t_object*)x, "Failed to create NDI sender, sender name '%s' may already be in use", sourceName->s_name);
 		jit_object_free(x);
 		return NULL; 
 	}
