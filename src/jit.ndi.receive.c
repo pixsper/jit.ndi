@@ -19,13 +19,14 @@
 #include <max.jit.mop.h>
 
 #include <Processing.NDI.Lib.h>
-#include <samplerate.h>
 
+#include "ndi_runtime.h"
 
 #define DEFAULT_INTERNAL_MATRIX_WIDTH 1920
 #define DEFAULT_INTERNAL_MATRIX_HEIGHT 1080
 
 NDIlib_v3* ndiLib;
+NDIlib_framesync* ndiLibFramesync;
 
 typedef enum _ColorMode
 {
@@ -49,6 +50,7 @@ typedef struct _jit_ndi_receive
 
 	NDIlib_find_instance_t ndiFinder;
 	NDIlib_recv_instance_t ndiReceiver;
+	NDIlib_framesync_instance_t ndiFrameSync;
 
 	t_dictionary* sources;
 	t_symbol* activeSourceId;
@@ -58,13 +60,7 @@ typedef struct _jit_ndi_receive
 	int matrixHeight;
 	NDIlib_FourCC_type_e lastFourCCType;
 
-	SRC_STATE* samplerateConverter;
 	double samplerate;
-	int audioBufferLength;
-	int audioBufferWritePosition;
-	int audioBufferReadPosition;
-	float* audioBuffer;
-	t_systhread_mutex audioMutex;
 
 	t_systhread receiveThread;
 	bool isCancelThread;
@@ -116,7 +112,6 @@ void jit_ndi_receive_process_video(t_jit_ndi_receive* x, const NDIlib_video_fram
 
 void jit_ndi_receive_startaudio(t_jit_ndi_receive* x, double samplerate);
 void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampleFrames);
-void jit_ndi_receive_process_audio(t_jit_ndi_receive* x, const NDIlib_audio_frame_v2_t* audioFrame, int inputOffset);
 
 void jit_ndi_receive_refreshsources(t_jit_ndi_receive* x);
 void jit_ndi_receive_update_tally(t_jit_ndi_receive* x);
@@ -318,25 +313,12 @@ t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName,
 	jit_ndi_receive_resize_internal_matrix(x, DEFAULT_INTERNAL_MATRIX_WIDTH / (x->attrColorMode == COLORMODE_UYVY ? 2 : 1), DEFAULT_INTERNAL_MATRIX_HEIGHT);
 
 	x->ndiReceiver = NULL;
+	x->ndiFrameSync = NULL;
 
 	x->receiveThread = NULL;
 	x->isCancelThread = false;
-
-	if (numAudioChannels > 0)
-	{
-		int error;
-		x->samplerateConverter = src_new(SRC_SINC_FASTEST, 1, &error);
-
-		if (error != 0)
-			jit_object_error((t_object*)x, "Failed to initialize sample rate converter: %s", src_strerror(error));
-	}
 	
 	x->samplerate = 0;
-	x->audioBufferLength = 0;
-	x->audioBufferWritePosition = 0;
-	x->audioBufferReadPosition = 0;
-	x->audioBuffer = NULL;
-	systhread_mutex_new(&x->audioMutex, SYSTHREAD_MUTEX_RECURSIVE);
 
 	x->attrHostName = hostName;
 	x->attrSourceName = sourceName;
@@ -383,13 +365,6 @@ void jit_ndi_receive_free(t_jit_ndi_receive* x)
 
 	jit_ndi_receive_free_receiver(x);
 
-	if (x->audioBuffer != NULL)
-		sysmem_freeptr(x->audioBuffer);
-
-	src_delete(x->samplerateConverter);
-
-	systhread_mutex_free(x->audioMutex);
-
 	jit_object_free(x->matrix);
 }
 
@@ -400,6 +375,14 @@ t_jit_err jit_ndi_receive_matrix_calc(t_jit_ndi_receive* x, void* inputs, void* 
 	long lock;
 	long inputLock;
 	void* outputMatrix = jit_object_method(outputs,_jit_sym_getindex, 0);
+
+	if (x->ndiFrameSync != NULL)
+	{
+		NDIlib_video_frame_v2_t videoFrame = { 0 };
+		ndiLibFramesync->NDIlib_framesync_capture_video(x->ndiFrameSync, &videoFrame, NDIlib_frame_format_type_progressive);
+		jit_ndi_receive_process_video(x, &videoFrame);
+		ndiLibFramesync->NDIlib_framesync_free_video(x->ndiFrameSync, &videoFrame);
+	}
 
 	if (x && outputMatrix)
 	{
@@ -461,6 +444,8 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 		return;
 	}
 
+	x->ndiFrameSync = ndiLibFramesync->NDIlib_framesync_create(x->ndiReceiver);
+
 	systhread_create((method)jit_ndi_receive_threadproc, x, 0, 0, 0, &x->receiveThread);
 }
 
@@ -476,33 +461,23 @@ void jit_ndi_receive_free_receiver(t_jit_ndi_receive* x)
 	x->receiveThread = NULL;
 	x->isCancelThread = false;
 
+	ndiLibFramesync->NDIlib_framesync_destroy(x->ndiFrameSync);
+
 	ndiLib->NDIlib_recv_destroy(x->ndiReceiver);
 }
 
 
 void jit_ndi_receive_threadproc(t_jit_ndi_receive* x)
 {
-	NDIlib_video_frame_v2_t videoFrame = { 0 };
-	NDIlib_audio_frame_v2_t audioFrame = { 0 };
 	NDIlib_metadata_frame_t metadataFrame = { 0 };
 
 	while(!x->isCancelThread)
 	{
 
-		switch (ndiLib->NDIlib_recv_capture_v2(x->ndiReceiver, &videoFrame, &audioFrame, &metadataFrame, 250))
+		switch (ndiLib->NDIlib_recv_capture_v2(x->ndiReceiver, NULL, NULL, &metadataFrame, 250))
 		{	
 			default:
 			case NDIlib_frame_type_none:
-				break;
-
-			case NDIlib_frame_type_video:
-				jit_ndi_receive_process_video(x, &videoFrame);
-				ndiLib->NDIlib_recv_free_video_v2(x->ndiReceiver, &videoFrame);
-				break;
-
-			case NDIlib_frame_type_audio:
-				jit_ndi_receive_process_audio(x, &audioFrame, 0);
-				ndiLib->NDIlib_recv_free_audio_v2(x->ndiReceiver, &audioFrame);
 				break;
 
 			case NDIlib_frame_type_metadata:
@@ -592,71 +567,30 @@ void jit_ndi_receive_process_video(t_jit_ndi_receive* x, const NDIlib_video_fram
 
 void jit_ndi_receive_startaudio(t_jit_ndi_receive* x, double samplerate)
 {
-	systhread_mutex_lock(x->audioMutex);
-
 	x->samplerate = samplerate;
-
-	if (x->audioBuffer != NULL)
-		sysmem_freeptr(x->audioBuffer);
-
-	x->audioBufferWritePosition = 0;
-	x->audioBufferReadPosition = 0;
-	x->audioBufferLength = x->samplerate * 2;
-	x->audioBuffer = (float*)sysmem_newptr(x->audioBufferLength * sizeof(float));
-
-	systhread_mutex_unlock(x->audioMutex);
 }
 
 void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampleFrames)
 {
-	systhread_mutex_lock(x->audioMutex);
+	assert(x->samplerate != 0);
 
-	if (x->audioBufferWritePosition - x->audioBufferReadPosition >= sampleFrames)
+	NDIlib_audio_frame_v2_t audioFrame = { 0 };
+	ndiLibFramesync->NDIlib_framesync_capture_audio(x->ndiFrameSync, &audioFrame, x->samplerate, x->attrNumAudioChannels, sampleFrames);
+
+	assert(audioFrame.no_channels == x->attrNumAudioChannels);
+	assert(audioFrame.no_samples == sampleFrames);
+
+	for(int i = 0; i < x->attrNumAudioChannels; ++i)
 	{
-		double* dst = outs[0];
+		double* dst = outs[i];
+		float* src = audioFrame.p_data + ((audioFrame.channel_stride_in_bytes / sizeof(float)) * i);
 
-		for(int i = 0; i < sampleFrames; i++)
-			*dst++ = *(x->audioBuffer + (x->audioBufferReadPosition++ % x->audioBufferLength));
+		for(int j = 0; j < sampleFrames; ++j)
+			*dst++ = *src++;
 	}
 
-	x->audioBufferReadPosition %= x->audioBufferLength;
-	x->audioBufferWritePosition %= x->audioBufferLength;
-
-	systhread_mutex_unlock(x->audioMutex);
+	ndiLibFramesync->NDIlib_framesync_free_audio(x->ndiFrameSync, &audioFrame);
 }
-
-void jit_ndi_receive_process_audio(t_jit_ndi_receive* x, const NDIlib_audio_frame_v2_t* audioFrame, int inputOffset)
-{
-	if (x->samplerateConverter == NULL || x->samplerate == 0)
-		return;
-
-	systhread_mutex_lock(x->audioMutex);
-
-	SRC_DATA data = { 0 };
-	data.data_in = audioFrame->p_data + inputOffset;
-	data.input_frames = audioFrame->no_samples - inputOffset;
-	data.data_out = x->audioBuffer + (x->audioBufferWritePosition & x->audioBufferLength);
-	data.output_frames = x->audioBufferLength - (x->audioBufferWritePosition & x->audioBufferLength);
-	data.src_ratio = x->samplerate / audioFrame->sample_rate;
-	data.end_of_input = 0;
-
-	
-	const int error = src_process(x->samplerateConverter, &data);
-
-	if (error != 0)
-	{
-		jit_object_error((t_object*)x, "Samplerate conversion error: %s", src_strerror(error));
-		return;
-	}
-
-	x->audioBufferWritePosition += data.output_frames_gen;
-
-	if (x->audioBufferWritePosition == x->audioBufferLength)
-		jit_ndi_receive_process_audio(x, audioFrame, data.input_frames_used);
-
-	systhread_mutex_unlock(x->audioMutex);
-}
-
 
 void jit_ndi_receive_refreshsources(t_jit_ndi_receive* x)
 {

@@ -65,7 +65,7 @@ t_class* max_jit_ndi_send_class;
 
 void ext_main(void* r)
 {
-	if (!load_ndi_runtime(&ndiLib))
+	if (!load_ndi_runtime(&ndiLib, NULL))
 		return;
 
 	common_symbols_init();

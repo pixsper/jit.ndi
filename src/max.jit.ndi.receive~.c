@@ -23,12 +23,12 @@
 #include <max.jit.mop.h>
 
 #include <Processing.NDI.Lib.h>
-#include <samplerate.h>
 
 #include "ndi_runtime.h"
 #include "build/version.h"
 
 extern NDIlib_v3* ndiLib;
+extern NDIlib_framesync* ndiLibFramesync;
 
 typedef struct _max_jit_ndi_receive
 {
@@ -65,9 +65,9 @@ void max_jit_ndi_outputmatrix(t_max_jit_ndi_receive *x);
 void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x);
 
 void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short* count, double samplerate,
-                               long maxvectorsize, long flags);
+							   long maxvectorsize, long flags);
 void max_jit_ndi_receive_perform64(t_max_jit_ndi_receive* x, t_object* dsp64, double** ins, long numins, double** outs,
-                                   long numouts, long sampleframes, long flags, void* userparam);
+								   long numouts, long sampleframes, long flags, void* userparam);
 
 void max_jit_ndi_receive_printversion(t_max_jit_ndi_receive* x);
 
@@ -76,7 +76,7 @@ t_class* max_jit_ndi_receive_class;
 
 void ext_main(void* r)
 {
-	if (!load_ndi_runtime(&ndiLib))
+	if (!load_ndi_runtime(&ndiLib, &ndiLibFramesync))
 		return;
 
 	common_symbols_init();
@@ -94,7 +94,7 @@ void ext_main(void* r)
 	jit_ndi_receive_init();
 
 	t_class* maxclass = class_new("jit.ndi.receive~", (method)max_jit_ndi_receive_new, (method)max_jit_ndi_receive_free,
-	                              sizeof(t_max_jit_ndi_receive), NULL, A_GIMME, 0);
+								  sizeof(t_max_jit_ndi_receive), NULL, A_GIMME, 0);
 
 
 	max_jit_class_obex_setup(maxclass, calcoffset(t_max_jit_ndi_receive, obex));
@@ -229,14 +229,14 @@ void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x)
 }
 
 void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short* count, double samplerate,
-                               long maxvectorsize, long flags)
+							   long maxvectorsize, long flags)
 {
 	object_method_direct(void, (t_jit_object*, double), x->jitObject, _sym_audio_start, samplerate);
 	object_method(dsp64, gensym("dsp_add64"), x, max_jit_ndi_receive_perform64, 0, NULL);
 }
 
 void max_jit_ndi_receive_perform64(t_max_jit_ndi_receive* x, t_object* dsp64, double** ins, long numins, double** outs,
-                                   long numouts, long sampleframes, long flags, void* userparam)
+								   long numouts, long sampleframes, long flags, void* userparam)
 {
 	jit_object_method(x->jitObject, _sym_get_samples, outs, sampleframes);
 }
