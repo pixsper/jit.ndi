@@ -27,8 +27,7 @@
 #include "ndi_runtime.h"
 #include "build/version.h"
 
-extern NDIlib_v3* ndiLib;
-extern NDIlib_framesync* ndiLibFramesync;
+extern NDIlib_v4* ndiLib;
 
 typedef struct _max_jit_ndi_receive
 {
@@ -58,6 +57,7 @@ t_jit_err jit_ndi_receive_init();
 
 void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv);
 void max_jit_ndi_receive_free(t_max_jit_ndi_receive* x);
+void max_jit_ndi_receive_assist(t_max_jit_ndi_receive* x, void* b, long io, long index, char* s);
 
 void max_jit_ndi_receive_notify(t_max_jit_ndi_receive* x, t_symbol* s, t_symbol* msg, void* ob, void* data);
 void max_jit_ndi_outputmatrix(t_max_jit_ndi_receive *x);
@@ -66,6 +66,7 @@ void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x);
 
 void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short* count, double samplerate,
 							   long maxvectorsize, long flags);
+long max_jit_ndi_receive_multichanneloutputs(t_max_jit_ndi_receive* x, long outletIndex);
 void max_jit_ndi_receive_perform64(t_max_jit_ndi_receive* x, t_object* dsp64, double** ins, long numins, double** outs,
 								   long numouts, long sampleframes, long flags, void* userparam);
 
@@ -76,7 +77,7 @@ t_class* max_jit_ndi_receive_class;
 
 void ext_main(void* r)
 {
-	if (!load_ndi_runtime(&ndiLib, &ndiLibFramesync))
+	if (!load_ndi_runtime(&ndiLib))
 		return;
 
 	common_symbols_init();
@@ -105,9 +106,10 @@ void ext_main(void* r)
 		| MAX_JIT_MOP_FLAGS_OWN_OUTPUTMODE | MAX_JIT_MOP_FLAGS_OWN_DIM | MAX_JIT_MOP_FLAGS_OWN_PLANECOUNT | MAX_JIT_MOP_FLAGS_OWN_TYPE);
 	max_jit_class_wrap_standard(maxclass, jitclass, 0);
 
-	class_addmethod(maxclass, (method)max_jit_mop_assist, "assist", A_CANT, 0);
+	class_addmethod(maxclass, (method)max_jit_ndi_receive_assist, "assist", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_notify, "notify", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_dsp64, "dsp64", A_CANT, 0);
+	class_addmethod(maxclass, (method)max_jit_ndi_receive_multichanneloutputs, "multichanneloutputs", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_getsourcelist, "getsourcelist", 0);
 
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_printversion, "version", 0);
@@ -148,9 +150,9 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 		{
 			x->numAudioChannels = MAX(numAudioChannels, 0);
 
-			if (x->numAudioChannels > SYS_MAXSIGS)
+			if (x->numAudioChannels > 250)
 			{
-				object_error((t_object*)x, "Can't have greater than %ld signal inlets", SYS_MAXSIGS);
+				object_error((t_object*)x, "Can't have greater than %ld signal inlets", 250);
 				freeobject((t_object*)x);
 				return NULL;
 			}
@@ -158,6 +160,7 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 	}
 
 	dsp_setup((t_pxobject*)x, 0);
+	x->object.z_misc |= Z_NO_INPLACE | Z_MC_INLETS;
 
 	// instantiate Jitter object with dest_name arg
 	if (!((x->jitObject = jit_object_new(_sym_jit_ndi_receive, x->hostName,  x->sourceName, x->numAudioChannels))))
@@ -170,8 +173,8 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 	max_jit_mop_setup_simple(x, x->jitObject, 0, NULL);
 	max_jit_attr_args(x, argc, argv);
 
-	for(int i = 0; i < x->numAudioChannels; i++)
-		outlet_new((t_object * )x, "signal");
+	if (x->numAudioChannels > 0)
+		outlet_new((t_object * )x, "multichannelsignal");
 
 	x->notifyName = jit_symbol_unique();
 	jit_object_method(x->jitObject, _jit_sym_register, x->notifyName);
@@ -188,6 +191,31 @@ void max_jit_ndi_receive_free(t_max_jit_ndi_receive* x)
 	jit_object_free(max_jit_obex_jitob_get(x));
 	max_jit_object_free(x);
 }
+
+void max_jit_ndi_receive_assist(t_max_jit_ndi_receive* x, void* b, long io, long index, char* s)
+{
+	switch (io)
+	{
+        case 1:
+			strncpy_zero(s, "bang, messages in", 512);
+            break;
+        case 2:
+			switch (index)
+			{
+				case 0:
+					strncpy_zero(s, "(matrix) out", 512);
+	                break;
+	            case 1:
+					strncpy_zero(s, "(multi-channel signal) out", 512);
+	                break;
+				case 2:
+					strncpy_zero(s, "dumpout", 512);
+	                break;
+	        }
+            break;
+    }
+}
+
 
 void max_jit_ndi_receive_notify(t_max_jit_ndi_receive* x, t_symbol* s, t_symbol* msg, void* ob, void* data)
 {
@@ -233,6 +261,11 @@ void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short*
 {
 	object_method_direct(void, (t_jit_object*, double), x->jitObject, _sym_audio_start, samplerate);
 	object_method(dsp64, gensym("dsp_add64"), x, max_jit_ndi_receive_perform64, 0, NULL);
+}
+
+long max_jit_ndi_receive_multichanneloutputs(t_max_jit_ndi_receive* x, long outletIndex)
+{
+    return x->numAudioChannels;
 }
 
 void max_jit_ndi_receive_perform64(t_max_jit_ndi_receive* x, t_object* dsp64, double** ins, long numins, double** outs,

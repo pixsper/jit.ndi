@@ -22,7 +22,7 @@
 #define NUM_FRAMEBUFFERS 2
 #define TALLY_UPDATE_INTERVAL 100
 
-NDIlib_v3* ndiLib;
+NDIlib_v4* ndiLib;
 
 typedef enum _ColorMode
 {

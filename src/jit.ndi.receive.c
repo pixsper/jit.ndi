@@ -25,8 +25,7 @@
 #define DEFAULT_INTERNAL_MATRIX_WIDTH 1920
 #define DEFAULT_INTERNAL_MATRIX_HEIGHT 1080
 
-NDIlib_v3* ndiLib;
-NDIlib_framesync* ndiLibFramesync;
+NDIlib_v4* ndiLib;
 
 typedef enum _ColorMode
 {
@@ -379,9 +378,9 @@ t_jit_err jit_ndi_receive_matrix_calc(t_jit_ndi_receive* x, void* inputs, void* 
 	if (x->ndiFrameSync != NULL)
 	{
 		NDIlib_video_frame_v2_t videoFrame = { 0 };
-		ndiLibFramesync->NDIlib_framesync_capture_video(x->ndiFrameSync, &videoFrame, NDIlib_frame_format_type_progressive);
+		ndiLib->NDIlib_framesync_capture_video(x->ndiFrameSync, &videoFrame, NDIlib_frame_format_type_progressive);
 		jit_ndi_receive_process_video(x, &videoFrame);
-		ndiLibFramesync->NDIlib_framesync_free_video(x->ndiFrameSync, &videoFrame);
+		ndiLib->NDIlib_framesync_free_video(x->ndiFrameSync, &videoFrame);
 	}
 
 	if (x && outputMatrix)
@@ -444,7 +443,7 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 		return;
 	}
 
-	x->ndiFrameSync = ndiLibFramesync->NDIlib_framesync_create(x->ndiReceiver);
+	x->ndiFrameSync = ndiLib->NDIlib_framesync_create(x->ndiReceiver);
 
 	systhread_create((method)jit_ndi_receive_threadproc, x, 0, 0, 0, &x->receiveThread);
 }
@@ -461,7 +460,7 @@ void jit_ndi_receive_free_receiver(t_jit_ndi_receive* x)
 	x->receiveThread = NULL;
 	x->isCancelThread = false;
 
-	ndiLibFramesync->NDIlib_framesync_destroy(x->ndiFrameSync);
+	ndiLib->NDIlib_framesync_destroy(x->ndiFrameSync);
 
 	ndiLib->NDIlib_recv_destroy(x->ndiReceiver);
 }
@@ -575,7 +574,7 @@ void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampl
 	assert(x->samplerate != 0);
 
 	NDIlib_audio_frame_v2_t audioFrame = { 0 };
-	ndiLibFramesync->NDIlib_framesync_capture_audio(x->ndiFrameSync, &audioFrame, x->samplerate, x->attrNumAudioChannels, sampleFrames);
+	ndiLib->NDIlib_framesync_capture_audio(x->ndiFrameSync, &audioFrame, x->samplerate, x->attrNumAudioChannels, sampleFrames);
 
 	assert(audioFrame.no_channels == x->attrNumAudioChannels);
 	assert(audioFrame.no_samples == sampleFrames);
@@ -589,7 +588,7 @@ void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampl
 			*dst++ = *src++;
 	}
 
-	ndiLibFramesync->NDIlib_framesync_free_audio(x->ndiFrameSync, &audioFrame);
+	ndiLib->NDIlib_framesync_free_audio(x->ndiFrameSync, &audioFrame);
 }
 
 void jit_ndi_receive_refreshsources(t_jit_ndi_receive* x)

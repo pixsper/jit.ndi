@@ -21,38 +21,6 @@
 #include <jit.common.h>
 #include <Processing.NDI.Lib.h>
 
-// TODO: Remove this if the NDI SDK is updated to include these functions
-typedef struct NDIlib_framesync
-{	
-	NDIlib_framesync_instance_t (*NDIlib_framesync_create)(NDIlib_recv_instance_t p_receiver);
-	void (*NDIlib_framesync_destroy)(NDIlib_framesync_instance_t p_instance);
-	void (*NDIlib_framesync_capture_audio)(NDIlib_framesync_instance_t p_instance, NDIlib_audio_frame_v2_t* p_audio_data,
-									int sample_rate, int no_channels, int no_samples);
-	void (*NDIlib_framesync_free_audio)(NDIlib_framesync_instance_t p_instance, NDIlib_audio_frame_v2_t* p_audio_data);
-	void (*NDIlib_framesync_capture_video)(NDIlib_framesync_instance_t p_instance, NDIlib_video_frame_v2_t* p_video_data,
-									NDIlib_frame_format_type_e field_type NDILIB_CPP_DEFAULT_VALUE(NDIlib_frame_format_type_progressive));
-	void (*NDIlib_framesync_free_video)(NDIlib_framesync_instance_t p_instance, NDIlib_video_frame_v2_t* p_video_data);
-
-} NDIlib_framesync;
-
-inline NDIlib_framesync* NDIlib_framesync_load(HMODULE runtimeModule)
-{
-	NDIlib_framesync* lib = (NDIlib_framesync*)malloc(sizeof(struct NDIlib_framesync));
-
-	lib->NDIlib_framesync_create = (NDIlib_framesync_instance_t (*)(NDIlib_recv_instance_t))GetProcAddress(runtimeModule, "NDIlib_framesync_create");
-	lib->NDIlib_framesync_destroy = (void (*)(NDIlib_recv_instance_t))GetProcAddress(runtimeModule, "NDIlib_framesync_destroy");
-	lib->NDIlib_framesync_capture_audio = (void (*)(NDIlib_recv_instance_t, NDIlib_audio_frame_v2_t*, int, int, int))
-											GetProcAddress(runtimeModule, "NDIlib_framesync_capture_audio");
-	lib->NDIlib_framesync_free_audio = (void (*)(NDIlib_recv_instance_t, NDIlib_audio_frame_v2_t*))
-											GetProcAddress(runtimeModule, "NDIlib_framesync_free_audio");
-	lib->NDIlib_framesync_capture_video = (void (*)(NDIlib_recv_instance_t, NDIlib_video_frame_v2_t*, NDIlib_frame_format_type_e))
-											GetProcAddress(runtimeModule, "NDIlib_framesync_capture_video");
-	lib->NDIlib_framesync_free_video = (void (*)(NDIlib_recv_instance_t, NDIlib_video_frame_v2_t*))
-											GetProcAddress(runtimeModule, "NDIlib_framesync_free_video");
-
-	return lib;
-}
-
 #ifdef WIN_VERSION
 
 inline void free_ndi_runtime(HMODULE* runtimeModule)
@@ -64,7 +32,7 @@ inline void free_ndi_runtime(HMODULE* runtimeModule)
 	}
 }
 
-inline bool load_ndi_runtime(NDIlib_v3** ndiLib, NDIlib_framesync** ndiLibFramesync)
+inline bool load_ndi_runtime(NDIlib_v4** ndiLib)
 {
 	*ndiLib = NULL;
 	
@@ -93,7 +61,7 @@ inline bool load_ndi_runtime(NDIlib_v3** ndiLib, NDIlib_framesync** ndiLibFrames
 	
 	quittask_install((method)free_ndi_runtime, &runtimeModule);
 	
-	FARPROC loadFunction = GetProcAddress(runtimeModule, "NDIlib_v3_load");
+	FARPROC loadFunction = GetProcAddress(runtimeModule, "NDIlib_v4_load");
 	
 	if (loadFunction == NULL)
 	{
@@ -101,10 +69,7 @@ inline bool load_ndi_runtime(NDIlib_v3** ndiLib, NDIlib_framesync** ndiLibFrames
 		return false;
 	}
 	
-	*ndiLib = (NDIlib_v3*)loadFunction();
-
-	if (ndiLibFramesync != NULL)
-		*ndiLibFramesync = NDIlib_framesync_load(runtimeModule);
+	*ndiLib = (NDIlib_v4*)loadFunction();
 	
 	return true;
 }
@@ -113,29 +78,29 @@ inline bool load_ndi_runtime(NDIlib_v3** ndiLib, NDIlib_framesync** ndiLibFrames
 
 #include <dlfcn.h>
 
-bool load_ndi_runtime(NDIlib_v3** ndiLib)
+bool load_ndi_runtime(NDIlib_v4** ndiLib)
 {
 	char ndiRuntimePath[MAX_PATH_CHARS];
 	
-	const char* ndiRuntimeDirPath = getenv("NDI_RUNTIME_DIR_V3");
+	const char* ndiRuntimeDirPath = getenv(NDILIB_REDIST_FOLDER);
 	if (ndiRuntimeDirPath)
-		snprintf(ndiRuntimePath, MAX_PATH_CHARS, "%s/libndi.dylib", ndiRuntimeDirPath);
+		snprintf(ndiRuntimePath, MAX_PATH_CHARS, "%s%s", ndiRuntimeDirPath, NDILIB_LIBRARY_NAME);
 	else
 		strncpy(ndiRuntimePath, NDILIB_LIBRARY_NAME, MAX_PATH_CHARS);
 	
 	void* ndiLibHandle = dlopen(ndiRuntimePath, RTLD_LOCAL | RTLD_LAZY);
 	
-	const NDIlib_v3* (*NDIlib_v3_load)(void) = NULL;
+	const NDIlib_v4* (*NDIlib_v4_load)(void) = NULL;
 	if (ndiLibHandle)
-		*((void**)&NDIlib_v3_load) = dlsym(ndiLibHandle, "NDIlib_v3_load");
+		*((void**)&NDIlib_4_load) = dlsym(ndiLibHandle, "NDIlib_v4_load");
 	
-	if (!NDIlib_v3_load)
+	if (!NDIlib_v4_load)
 	{
 		error("Unable to load NDI runtime library. Please download and/or reinstall NDI runtime from '%s' and restart Max", NDILIB_REDIST_URL);
 		return false;
 	}
 	
-	*ndiLib = (NDIlib_v3*)NDIlib_v3_load();
+	*ndiLib = (NDIlib_v4*)NDIlib_v4_load();
 	
 	return true;
 }

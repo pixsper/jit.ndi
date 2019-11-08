@@ -26,7 +26,7 @@
 #include "ndi_runtime.h"
 #include "build/version.h"
 
-extern NDIlib_v3* ndiLib;
+extern NDIlib_v4* ndiLib;
 
 typedef struct _max_jit_ndi_send
 {
@@ -51,10 +51,12 @@ t_jit_err jit_ndi_send_init();
 
 void* max_jit_ndi_send_new(t_symbol* s, long argc, t_atom* argv);
 void max_jit_ndi_send_free(t_max_jit_ndi_send* x);
+void max_jit_ndi_send_assist(t_max_jit_ndi_send* x, void* b, long io, long index, char* s);
 
 void max_jit_ndi_send_notify(t_max_jit_ndi_send* x, t_symbol* s, t_symbol* msg, void* ob, void* data);
 
 void max_jit_ndi_send_dsp64(t_max_jit_ndi_send* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
+long max_jit_ndi_send_multichanneloutputs(t_max_jit_ndi_send* x, long outletIndex);
 void max_jit_ndi_send_perform64(t_max_jit_ndi_send* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
 
 void max_jit_ndi_send_printversion(t_max_jit_ndi_send* x);
@@ -65,7 +67,7 @@ t_class* max_jit_ndi_send_class;
 
 void ext_main(void* r)
 {
-	if (!load_ndi_runtime(&ndiLib, NULL))
+	if (!load_ndi_runtime(&ndiLib))
 		return;
 
 	common_symbols_init();
@@ -88,9 +90,10 @@ void ext_main(void* r)
 	max_jit_class_mop_wrap(maxclass, jitclass,  MAX_JIT_MOP_FLAGS_OWN_ADAPT | MAX_JIT_MOP_FLAGS_OWN_OUTPUTMODE | MAX_JIT_MOP_FLAGS_OWN_NOTIFY);
 	max_jit_class_wrap_standard(maxclass, jitclass, 0);
 
-	class_addmethod(maxclass, (method)max_jit_mop_assist, "assist", A_CANT, 0);
+	class_addmethod(maxclass, (method)max_jit_ndi_send_assist, "assist", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_notify, "notify", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_dsp64, "dsp64", A_CANT, 0);
+	class_addmethod(maxclass, (method)max_jit_ndi_send_multichanneloutputs, "multichanneloutputs", A_CANT, 0);
 
 	class_addmethod(maxclass, (method)max_jit_ndi_send_printversion, "version", 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_getruntimeurl, "getruntimeurl", 0);
@@ -128,9 +131,9 @@ void* max_jit_ndi_send_new(t_symbol *s, long argc, t_atom *argv)
 		{
 			x->numAudioChannels = MAX(al, 0);
 
-			if (x->numAudioChannels > SYS_MAXSIGS)
+			if (x->numAudioChannels > 250)
 			{
-				object_error((t_object*)x, "Can't have greater than %ld signal inlets", SYS_MAXSIGS);
+				object_error((t_object*)x, "Can't have greater than %ld signal inlets", 250);
 				freeobject((t_object*)x);
 				return NULL;
 			}
@@ -138,6 +141,7 @@ void* max_jit_ndi_send_new(t_symbol *s, long argc, t_atom *argv)
 	}
 
 	dsp_setup((t_pxobject*)x, x->numAudioChannels);
+	x->object.z_misc |= Z_NO_INPLACE | Z_MC_INLETS;
 
 	// instantiate Jitter object with dest_name arg
 	if (!((x->jitObject = jit_object_new(_sym_jit_ndi_send, x->sourceName, x->numAudioChannels))))
@@ -165,6 +169,26 @@ void max_jit_ndi_send_free(t_max_jit_ndi_send *x)
 	max_jit_object_free(x);
 }
 
+void max_jit_ndi_send_assist(t_max_jit_ndi_send* x, void* b, long io, long index, char* s)
+{
+	switch (io)
+	{
+        case 1:
+            switch (index) {
+                case 0:
+                    strncpy_zero(s, "(matrix) in", 512);
+                    break;
+                case 1:
+                    strncpy_zero(s, "(multi-channel signal) in", 512);
+                    break;
+            }
+            break;
+        case 2:
+            strncpy_zero(s, "dumpout", 512);
+            break;
+    }
+}
+
 void max_jit_ndi_send_notify(t_max_jit_ndi_send* x, t_symbol* s, t_symbol* msg, void* ob, void* data)
 {
 	if (msg == _sym_attr_modified)
@@ -189,6 +213,11 @@ void max_jit_ndi_send_dsp64(t_max_jit_ndi_send* x, t_object* dsp64, short* count
 {
 	object_method_direct(void, (t_jit_object*, double), x->jitObject, _sym_audio_start, samplerate);
 	jit_object_method(dsp64, gensym("dsp_add64"), x, max_jit_ndi_send_perform64, 0, NULL);
+}
+
+long max_jit_ndi_send_multichanneloutputs(t_max_jit_ndi_send* x, long outletIndex)
+{
+    return 0;
 }
 
 void max_jit_ndi_send_perform64(t_max_jit_ndi_send* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
