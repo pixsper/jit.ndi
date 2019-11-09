@@ -202,7 +202,7 @@ t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName, t_atom_long numAudioChann
 
 	if (!ndiLib->NDIlib_initialize())
 	{
-		jit_object_error(NULL, "jit.ndi.send: This machine does not meet the specification required to run NDI.");
+		jit_object_error(NULL, "jit.ndi.send~: This machine does not meet the specification required to run NDI.");
 		return NULL;
 	}
 

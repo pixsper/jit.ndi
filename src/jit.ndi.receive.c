@@ -20,8 +20,6 @@
 
 #include <Processing.NDI.Lib.h>
 
-#include "ndi_runtime.h"
-
 #define DEFAULT_INTERNAL_MATRIX_WIDTH 1920
 #define DEFAULT_INTERNAL_MATRIX_HEIGHT 1080
 
@@ -301,7 +299,7 @@ t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName,
 
 	if (!ndiLib->NDIlib_initialize())
 	{
-		jit_object_error(NULL, "jit.ndi.send: This machine does not meet the specification required to run NDI.");
+		jit_object_error(NULL, "jit.ndi.receive~: This machine does not meet the specification required to run NDI.");
 		return NULL;
 	}
 

@@ -92,7 +92,7 @@ bool load_ndi_runtime(NDIlib_v4** ndiLib)
 	
 	const NDIlib_v4* (*NDIlib_v4_load)(void) = NULL;
 	if (ndiLibHandle)
-		*((void**)&NDIlib_4_load) = dlsym(ndiLibHandle, "NDIlib_v4_load");
+		*((void**)&NDIlib_v4_load) = dlsym(ndiLibHandle, "NDIlib_v4_load");
 	
 	if (!NDIlib_v4_load)
 	{
