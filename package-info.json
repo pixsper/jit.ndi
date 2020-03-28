@@ -1,0 +1,23 @@
+{
+	"author" : "David Butler / The Impersonal Stereo",
+	"description" : "Objects for sending/receiving video and audio using the Newtek NDI protocol",
+	"max_version_min" : "8.0", "max_version_max" : "none",
+	"name" : "jit.ndi",
+	"os" : {
+		"macintosh" : {
+			"platform" : [ "x64" ],
+			"min_version" : "none"
+		},
+		"windows" : {
+			"platform" : [ "x64" ],
+			"min_version" : "none"
+		}
+	},
+	"package_extra" : {
+		"reverse_domain" : "com.theimpersonalstereo",
+		"copyright" : "Copyright (c) 2020 David Butler / The Impersonal Stereo"
+	},
+	"tags" : [ ],
+	"version" : "0.1.0",
+	"website" : "https://github.com/impsnldavid/jit.ndi"
+}
