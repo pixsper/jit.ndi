@@ -3,7 +3,7 @@
 
 <c74object name='jit.ndi.receive~'>
 
-	<digest>Receive video/audio from a network using the NDI protocol</digest>
+	<digest>Receive video/audio from a network source using the NDI protocol</digest>
 	<description>
 		NDI is a protocol developed by NewTek for streaming video/audio over IP. It allows multiple video systems to identify and communicate with one another over IP, and to encode, transmit and receive many streams of high quality, low latency, frame-accurate video and audio in real-time. NDI can operate bi-directionally over a local area network, with many video streams on a shared connection. It's encoding algorithm is resolution and frame-rate independent, supporting 4K and beyond, along with 16 channels and more of floating-point audio. The protocol includes tools that implement video access rights, grouping, bi-directional metadata, IP commands, tally status and PTZ camera control. <br/>
 		<br/>

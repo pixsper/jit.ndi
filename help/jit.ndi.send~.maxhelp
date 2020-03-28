@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 1543.0, 446.0, 675.0, 767.0 ],
+		"rect" : [ 802.0, 338.0, 687.0, 835.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -56,7 +56,7 @@
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 675.0, 741.0 ],
+						"rect" : [ 0.0, 26.0, 687.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -503,7 +503,7 @@
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 1543.0, 472.0, 675.0, 741.0 ],
+						"rect" : [ 802.0, 364.0, 687.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -532,6 +532,116 @@
 						"subpatcher_template" : "",
 						"showontab" : 1,
 						"boxes" : [ 							{
+								"box" : 								{
+									"hidden" : 1,
+									"id" : "obj-44",
+									"maxclass" : "toggle",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "int" ],
+									"parameter_enable" : 0,
+									"patching_rect" : [ 343.5, 410.5, 24.0, 24.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"hidden" : 1,
+									"id" : "obj-42",
+									"linecount" : 4,
+									"maxclass" : "message",
+									"numinlets" : 2,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 290.0, 740.0, 160.0, 64.0 ],
+									"presentation_linecount" : 3,
+									"text" : ";\r\nmax launchbrowser https://www.theimpersonalstereo.com"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"hidden" : 1,
+									"id" : "obj-41",
+									"linecount" : 3,
+									"maxclass" : "message",
+									"numinlets" : 2,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 80.0, 750.0, 210.0, 50.0 ],
+									"presentation_linecount" : 4,
+									"text" : ";\r\nmax launchbrowser https://www.davidbutlerdesign.co.uk"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"align" : 0,
+									"bgcolor" : [ 0.290196, 0.309804, 0.301961, 0.0 ],
+									"id" : "obj-40",
+									"maxclass" : "textbutton",
+									"numinlets" : 1,
+									"numoutlets" : 3,
+									"outlettype" : [ "", "", "int" ],
+									"parameter_enable" : 0,
+									"patching_rect" : [ 250.0, 770.0, 180.0, 20.0 ],
+									"text" : "www.theimpersonalstereo.com",
+									"textjustification" : 0,
+									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
+									"underline" : 1
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"autofit" : 1,
+									"data" : [ 2544, "png", "IBkSG0fBZn....PCIgDQRA...vC....OHX....fN7msb....DLmPIQEBHf.B7g.YHB..IbZRDEDUnEX6atFSUckFF94bG3nBX.b9CsvOjNVArGMPqPavllni.os1h2PqhUaro1DDqMisDI9GsSrNk1zhso0lXrvzVIcfwVtzKxQmJT4VpbvjB0IR4VBGwVNRjamCv27CfcYy9XUbPbP8MYkrWu68Yu9dWq85ac46rzAHbWDze61.ltw8D7c5v3DI72e+YAKXA3wiGLZzHM2byzQGcPbwEGCLv.nWud5t6towFaTgSmNcHhPs0VKQGczXwhEFd3gwGe7gxKubBKrvHjPBggFZHLa1L0TSML6YOahHhHviGOXxjItvEt.tb4hXiMVb61MFLXfKe4KyEu3EI93im96uezqWGCLfab3vAKdwKF850iHBVrXgJpnBl+7mOAFXfLzPCgISl3m9oehqbkqnQzx3SqK0TkwiCe3CKVsZUEWqs1t.HSDWKN61sqhylMaxte0cqhKyLyThHhHTwUYkUNoJmFarQUbqK0TkIpOMB9YSIEkWvL4jHh7rojhFdM8gMYxjlOAloBuoEMBtwFZf7xKuoEC5VIxKu+AM1PCZ30wc6S73417lXjtvyrgHBO2l2jFdMBt2d5cZwflNf2zhFAq2fgoEiY5.dSKZD7Ub4BmNuzzhAcqDNc1IWwkKM72yoUJqd02w3zJkUuZM720s3AMBdlea6uCwKpQifsX17zhwLc.Kls3U9aYSfetycthCGNju5q9J4rm8rRFYjgbfCb.APJt3RDa1rIezG8QxoN0ojZpoFYGu7KeKeQEZZgSXYKCGNbL4qN8Bb61Ms0VajTRIQ80WOwDSLrzktT.Xkq7uPHgDBqZUqB.91u8aooK1zTR4BfCG0SBKaYd8dppAVyZW6T5xCMZznx668e+2WDQj1aucQDQRHgDjlZpIomd5Qb4xkrm8rmozkGtl0t1qeK7PCMzMSE50D96u+JWaxjIZqs1XW6ZW.fd85whEKb7ieb1111FEUTQSoks2zhFA6qe9MkVn50+6Ewrl0rnkVZgO+y+b.vhEKXwhEd3G9gI0T2.QFYjSoks2zhl8zJ2icLx+3GeJqP6qu93zm9z.v28ceGAETP.vwN1wnkVZgibjiPXgEFVsZEc5zMkUt93quLP+8606o5a7GbgKTxN6ruk6s7VcJ6rea4AW3B818TSL1l3c61f+eMMxl3s9quSKOtcqJeokVJ4jSNDYjQRYkUlBegE9uHt3hizSOcDQPDg+5d1CQGUTJ4EQXqacqJWevCdPXDqAQDV1nCabjibjw8LuI.blybFd5m9oAf7xKOJrvBUJ6wOW+8t28RSM0zDkwnZwiFNM8gs3iOpx6me9gd85Y9ye973O9iiQilXvA8vS8TOIEVXAXznQb5zIaaaaiu7K+RpnhJ..a1VLADP.DUTQxUu5UI4jSlScpSQyM2B.72eq2hG4QdDdnG5gXqacqjPBIfUqVo3hKlpppR5ryNofBJ.qVsxfCNH95qu.PJojB.jc1uMYjwNwjISLqYMKuJ3IpEkJrwmBJ3fkjRJIk71saWdm24cjrxJKQDQ93O9ik27PGRDQjCcnCIu3K9hJ6C7fCMjrfEr.U6MbZokll8Otu95S45Nb5TxLyLUJu268dO4zm9eK4latJ+lhKtX4Dm3DBfzau8Jd73Q42mUVYIczQGZ9zMojRVBJ3fu9eRCirH4wCOd7PLwDKkUlcd9m+4Y2uxqvYNS4DSLwfNc5nqt5hEsnEgQCFHjPBYj2gNcnSmNkVF.7ypUBMzPIxHijyUWcTVY1wQc0QhIlnxyjXhIRSMcQ72e+Y+6e+TRIkvJW4J429seinhJJ70WewnwQ9v7kdoWht6tabOgtgdSCWyV3T23FU4zplZpQd228cEQDIojRRps1ZklZ5WjG6wdLQDQ14N2ozUWco77Ke4KWDQjd6sWQDQxHiLj1auckYYkSNGVokqfBJPYlXi87iU1+3O9iR94mu.H8zSOxm7Ieh3xkK4y9rOS.T9xJiLxP4285u9qqxoUpabiZZg0zGdhic8Zu1qwktzkvgCGTd4kSRIkDlMale8W+U1wN1Aey27MzRKsn77m6bmiW3EdAFbvAwrYybxSdRZqs1H+7ymFZnANwINAUTQ4b+2+8yANvA..CFLvdyJKFziG1+92uR41c2cC.VsZkjSNYpt5p4C+vOD.9fO3CvnQi7y+7OSZokFVrXge3G9g+Ps30V36zGVx.v9Fu5Gd3gwia270e8W60Zm+HLu48mnmdtJFMZDQDkn6M1zKGKuACFTMzhgQ2cQiFMxvCOL.DXfARvAGBc2s1n+cif.BHPJojRnyN6Ty8zTK3iO9LopMmybliR+nzSOcUdkGu2VQDYe6aeJW+Eew+ThN5n03EupppRIua2tuoZguVZPiW5MtoMQe802jp1Lt3hG.1912N0We8JyINlXhkRKsTDQH1Xik3hKd70Weo5pqlDSLQdlmYULv.i3gcIKYI7DOwSP5omNwDSLXwhOnSmN5qu9vtc6SJ6AFYN7abSZi7.LgZfa1vk9oe5mJhHRjQFoRenvCObYMqYMpZA20t1kx0G8nGUSLgKszRkidzip7d2vF1vMk8HxMX3RMbSD4gsrksPQEUD4jSNb1ydVEdiFMhYylo2d6UYb4PCMTkwM2912NVsZE32G2tppphMu4Mq7Ndi23uQkUV4j1ltVZQyvRNc5j5qu9I0Ktqt5hBJn.fQlx2XvrYyX1rY7yO+TbRcvCdPps1Z4jm7jze+8SxImL.J2WmNcjVZooxo18cegNorG.pu9yiSmN0vOkE4g4N24RngFJ0UWc.PXgGNM+K+BlLalfCJHkcen6t6F+7yOt7kuLgEd33dfAPDggGVvrYSzZqsB.OvC7mYNyY1Tc0UOUXdpfpuwS8lrOy+ukDQjT2vFt98gGvKyKclJFv8.Z3zH3otMY41Oz4E0bWWrktW3RW9JVAc3E24yzPGNuDKeEqPCuFA6e.Av7FcQ7yjw7BIX7Of.zvqQvCOEG4gamvaZQif8y5TajGtcBuok64zxlMajat4d6vVlRQt4lG1rYyq2S0TuV25W+cLSsbcq+FIxCdzta8yTg2zh1+9vi9e7PFMzGG9vGFqVspJ7Is1Z6pdlwRWKN61sqhylMar6W8UUwkYlYRDQDgJtwVG7MZ4zXiMpJuIu7+UQy5gKonhXoKcopNB.8zSODe7wq5H..nvM1Q..fEsnEgEylYXQvmQC0wV1xVTcD.N+4OOM2byblu+6G8H.XjKbg+Ctb4h3hKNUGA..dzG8Qo+96Gc5zor4AKYIKQ0Q..fjSNYMGAfIh64k9NcbOAemN9uLaEwX0f5DLG.....jTQNQjqBAlf" ],
+									"embed" : 1,
+									"forceaspect" : 1,
+									"id" : "obj-36",
+									"maxclass" : "fpic",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "jit_matrix" ],
+									"patching_rect" : [ 10.0, 740.0, 60.0, 60.0 ],
+									"pic" : "C:/Users/David/Dropbox/IMP/Logo/MiniLogoBlack.png"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"align" : 0,
+									"bgcolor" : [ 0.290196, 0.309804, 0.301961, 0.0 ],
+									"id" : "obj-35",
+									"maxclass" : "textbutton",
+									"numinlets" : 1,
+									"numoutlets" : 3,
+									"outlettype" : [ "", "", "int" ],
+									"parameter_enable" : 0,
+									"patching_rect" : [ 80.0, 770.0, 180.0, 20.0 ],
+									"text" : "www.davidbutlerdesign.co.uk",
+									"textjustification" : 0,
+									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
+									"underline" : 1
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontface" : 1,
+									"id" : "obj-34",
+									"maxclass" : "comment",
+									"numinlets" : 1,
+									"numoutlets" : 0,
+									"patching_rect" : [ 80.0, 750.0, 310.0, 20.0 ],
+									"presentation_linecount" : 2,
+									"style" : "helpfile_label",
+									"text" : "jit.ndi v0.1.0 by David Butler / The Impersonal Stereo",
+									"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ]
+								}
+
+							}
+, 							{
 								"box" : 								{
 									"id" : "obj-20",
 									"maxclass" : "newobj",
@@ -1756,6 +1866,22 @@
 							}
 , 							{
 								"patchline" : 								{
+									"destination" : [ "obj-41", 0 ],
+									"hidden" : 1,
+									"source" : [ "obj-35", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-42", 0 ],
+									"hidden" : 1,
+									"source" : [ "obj-40", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
 									"destination" : [ "obj-1", 0 ],
 									"midpoints" : [ 139.5, 570.0, 29.5, 570.0 ],
 									"source" : [ "obj-8", 0 ]
@@ -1830,7 +1956,7 @@
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 675.0, 741.0 ],
+						"rect" : [ 0.0, 26.0, 687.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -1925,6 +2051,13 @@
 				"name" : "helpargs.js",
 				"bootpath" : "C74:/help/resources",
 				"type" : "TEXT",
+				"implicit" : 1
+			}
+, 			{
+				"name" : "MiniLogoBlack.png",
+				"bootpath" : "~/Dropbox/IMP/Logo",
+				"patcherrelativepath" : "../../../../../Dropbox/IMP/Logo",
+				"type" : "PNG",
 				"implicit" : 1
 			}
 , 			{
