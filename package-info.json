@@ -1,6 +1,6 @@
 {
 	"author" : "David Butler / The Impersonal Stereo",
-	"description" : "Objects for sending/receiving video and audio using the Newtek NDI protocol",
+	"description" : "Objects for sending/receiving video and audio using the Newtek NDI® protocol",
 	"max_version_min" : "8.0", "max_version_max" : "none",
 	"name" : "jit.ndi",
 	"os" : {
