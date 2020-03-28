@@ -28,6 +28,10 @@
 #include "ndi_runtime.h"
 #include "build/version.h"
 
+#ifdef MAC_VERSION
+#include <sys/param.h>
+#endif
+
 extern NDIlib_v4* ndiLib;
 
 typedef struct _max_jit_ndi_receive
@@ -443,8 +447,8 @@ t_symbol* max_jit_ndi_gethostname(t_max_jit_ndi_receive* x)
 		
 #else
 		
-	char hostname[HOST_NAME_MAX];
-	gethostname(hostname, HOST_NAME_MAX);
+	char hostname[MAXHOSTNAMELEN];
+	gethostname(hostname, MAXHOSTNAMELEN);
 
 	return gensym(hostname);
 		

@@ -77,7 +77,7 @@ t_symbol* _sym_tally_onpreview;
 
 
 t_jit_err jit_ndi_send_init();
-t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName, t_atom_long numAudioChannels);
+t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName);
 void jit_ndi_send_free(t_jit_ndi_send* x);
 
 t_jit_err jit_ndi_send_matrix_calc(t_jit_ndi_send* x, void* inputs, void* outputs);

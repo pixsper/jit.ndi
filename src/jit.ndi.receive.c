@@ -114,7 +114,7 @@ void jit_ndi_receive_update_tally(t_jit_ndi_receive* x);
 
 t_symbol* jit_ndi_receive_getsourcelist(t_jit_ndi_receive* x);
 t_symbol* jit_ndi_receive_getsource(t_jit_ndi_receive* x);
-t_symbol* jit_ndi_receive_setsource(t_jit_ndi_receive* x, t_symbol* s);
+void jit_ndi_receive_setsource(t_jit_ndi_receive* x, t_symbol* s);
 
 t_jit_err jit_ndi_receive_setattr_hostname(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_receive_setattr_sourcename(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
@@ -301,7 +301,7 @@ t_jit_err jit_ndi_receive_init()
 }
 
 
-t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName, long numAudioChannels)
+t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName, t_atom_long numAudioChannels)
 {
 	t_jit_ndi_receive* x;
 
@@ -427,7 +427,7 @@ t_jit_err jit_ndi_receive_matrix_calc(t_jit_ndi_receive* x, void* inputs, void* 
 void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 {
 	if (x->ndiReceiver != NULL)
-		ndiLib->recv_destroy(x->ndiReceiver);
+        jit_ndi_receive_free_receiver(x);
 
 	if (x->activeSourceId == NULL)
 		return;
@@ -454,7 +454,7 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 
 void jit_ndi_receive_free_receiver(t_jit_ndi_receive* x)
 {
-	if (x->ndiReceiver == NULL)
+	if (!x->ndiReceiver)
 		return;
 
 	x->isCancelThread = true;
@@ -465,8 +465,10 @@ void jit_ndi_receive_free_receiver(t_jit_ndi_receive* x)
 	x->isCancelThread = false;
 
 	ndiLib->framesync_destroy(x->ndiFrameSync);
+    x->ndiFrameSync = NULL;
 
 	ndiLib->recv_destroy(x->ndiReceiver);
+    x->ndiReceiver = NULL;
 }
 
 
@@ -648,7 +650,7 @@ t_symbol* jit_ndi_receive_getsource(t_jit_ndi_receive* x)
 	return x->activeSourceId;
 }
 
-t_symbol* jit_ndi_receive_setsource(t_jit_ndi_receive* x, t_symbol* s)
+void jit_ndi_receive_setsource(t_jit_ndi_receive* x, t_symbol* s)
 {
 	t_symbol* hostName = NULL;
 	t_symbol* sourceName = NULL;
