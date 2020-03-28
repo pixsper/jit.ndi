@@ -15,7 +15,7 @@ The [NewTek NDI®](https://ndi.tv/) protocol allows high-quality, high-performan
 ## Requirements
 - Max 8 (64-bit) - Windows or Mac
 - [Newtek NDI® Runtime](http://new.tk/NDIRedistV4)
-- Optional (useful for testing) - [NewTek NDI® Tools](https://ndi.tv/tools/)
+- [NewTek NDI® Tools](https://ndi.tv/tools/) - Required if using NDI-HX equipment (and also useful for testing)
 
 ## License
 jit.ndi is licensed under LGPL 3.0. This means you are free to use the objects in any commercial/non-commercial project but any changes to the source code must be released under the same license.
