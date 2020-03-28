@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 1486.0, 277.0, 675.0, 897.0 ],
+		"rect" : [ 1081.0, 340.0, 675.0, 897.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -422,7 +422,7 @@
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 1486.0, 303.0, 675.0, 871.0 ],
+						"rect" : [ 1081.0, 366.0, 675.0, 871.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -451,6 +451,49 @@
 						"subpatcher_template" : "",
 						"showontab" : 1,
 						"boxes" : [ 							{
+								"box" : 								{
+									"id" : "obj-38",
+									"maxclass" : "comment",
+									"numinlets" : 1,
+									"numoutlets" : 0,
+									"patching_rect" : [ 337.5, 435.5, 150.0, 20.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"hidden" : 1,
+									"id" : "obj-27",
+									"linecount" : 3,
+									"maxclass" : "message",
+									"numinlets" : 2,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 500.0, 110.0, 116.0, 50.0 ],
+									"presentation_linecount" : 3,
+									"text" : ";\r\nmax launchbrowser https://ndi.tv/"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"align" : 0,
+									"bgcolor" : [ 0.290196, 0.309804, 0.301961, 0.0 ],
+									"id" : "obj-22",
+									"maxclass" : "textbutton",
+									"numinlets" : 1,
+									"numoutlets" : 3,
+									"outlettype" : [ "", "", "int" ],
+									"parameter_enable" : 0,
+									"patching_rect" : [ 490.0, 57.0, 110.0, 16.0 ],
+									"text" : "ndi.tv",
+									"textjustification" : 0,
+									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
+									"underline" : 1
+								}
+
+							}
+, 							{
 								"box" : 								{
 									"hidden" : 1,
 									"id" : "obj-42",
@@ -1103,6 +1146,14 @@
 									"destination" : [ "obj-18", 0 ],
 									"hidden" : 1,
 									"source" : [ "obj-20", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-27", 0 ],
+									"hidden" : 1,
+									"source" : [ "obj-22", 0 ]
 								}
 
 							}

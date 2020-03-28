@@ -534,6 +534,38 @@
 						"boxes" : [ 							{
 								"box" : 								{
 									"hidden" : 1,
+									"id" : "obj-37",
+									"linecount" : 3,
+									"maxclass" : "message",
+									"numinlets" : 2,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 500.0, 110.0, 116.0, 50.0 ],
+									"text" : ";\r\nmax launchbrowser https://ndi.tv/"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"align" : 0,
+									"bgcolor" : [ 0.290196, 0.309804, 0.301961, 0.0 ],
+									"id" : "obj-38",
+									"maxclass" : "textbutton",
+									"numinlets" : 1,
+									"numoutlets" : 3,
+									"outlettype" : [ "", "", "int" ],
+									"parameter_enable" : 0,
+									"patching_rect" : [ 490.0, 57.0, 110.0, 16.0 ],
+									"text" : "ndi.tv",
+									"textjustification" : 0,
+									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
+									"underline" : 1
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"hidden" : 1,
 									"id" : "obj-44",
 									"maxclass" : "toggle",
 									"numinlets" : 1,
@@ -554,7 +586,6 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"patching_rect" : [ 290.0, 740.0, 160.0, 64.0 ],
-									"presentation_linecount" : 3,
 									"text" : ";\r\nmax launchbrowser https://www.theimpersonalstereo.com"
 								}
 
@@ -569,7 +600,6 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"patching_rect" : [ 80.0, 750.0, 210.0, 50.0 ],
-									"presentation_linecount" : 4,
 									"text" : ";\r\nmax launchbrowser https://www.davidbutlerdesign.co.uk"
 								}
 
@@ -634,7 +664,6 @@
 									"numinlets" : 1,
 									"numoutlets" : 0,
 									"patching_rect" : [ 80.0, 750.0, 310.0, 20.0 ],
-									"presentation_linecount" : 2,
 									"style" : "helpfile_label",
 									"text" : "jit.ndi v0.1.0 by David Butler / The Impersonal Stereo",
 									"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ]
@@ -1869,6 +1898,14 @@
 									"destination" : [ "obj-41", 0 ],
 									"hidden" : 1,
 									"source" : [ "obj-35", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-37", 0 ],
+									"hidden" : 1,
+									"source" : [ "obj-38", 0 ]
 								}
 
 							}
