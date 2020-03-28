@@ -27,9 +27,6 @@
 		<objarg name="name" optional="1" type="symbol">
 			<description>Sets the unique name of this NDI sender.</description>
 		</objarg>
-		<objarg name="num_channels" optional="1" type="long">
-			<description>Sets the number of audio channels.</description>
-		</objarg>
 	</objarglist>
 
 
@@ -61,7 +58,7 @@
 		
 		<attribute name='num_channels' get='1' set='0' type='symbol' size='1' >
 			<digest>Number of audio channels</digest>
-			<description>The number of audio channels which will be sent from this sender. Can only be set by argument at object initialization.</description>
+			<description>The number of audio channels which will be sent from this sender. Automatically set by the channel count of the multichannel input.</description>
 		</attribute>
 	
 		<attribute name='colormode' get='1' set='1' type='long' size='1' >

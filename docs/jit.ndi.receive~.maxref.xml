@@ -25,7 +25,7 @@
 
 	<objarglist>
 		<objarg name="hostname" optional="1" type="symbol">
-			<description>Sets the host name of the NDI sender to receive from.</description>
+			<description>Sets the host name of the NDI sender to receive from. If not specified then the host will be set to the local machine.</description>
 		</objarg>
 		
 		<objarg name="name" optional="1" type="symbol">
@@ -33,7 +33,7 @@
 		</objarg>
 		
 		<objarg name="num_channels" optional="1" type="long">
-			<description>Sets the number of audio channels to receive</description>
+			<description>Sets the number of audio channels to receive.</description>
 		</objarg>
 	</objarglist>
 
@@ -68,11 +68,6 @@
 			<digest>Name of NDI sender to receive from</digest>
 			<description>Name of the NDI sender to receive from. This can be set even if the host does not currently exist or if it is not currently sending.</description>
 		</attribute>
-		
-		<attribute name='num_channels' get='1' set='0' type='symbol' size='1' >
-			<digest>Number of audio channels</digest>
-			<description>The number of audio channels which will be received from the NDI sender. Can only be set by argument at object initialization.</description>
-		</attribute>
 	
 		<attribute name='colormode' get='1' set='1' type='long' size='1' >
 			<digest>Output matrices color encoding</digest>
@@ -89,7 +84,7 @@
 			<description>The tally status indicating whether this receiver is displaying the source on preview. Will be communicated back over the network to the sender.</description>
 		</attribute>
 		
-		<attribute name='tally_onpreview' get='1' set='1' type='long' size='1' >
+		<attribute name='tally_onprogram' get='1' set='1' type='long' size='1' >
 			<digest>Tally program status</digest>
 			<description>The tally status indicating whether this receiver is displaying the source on program. Will be communicated back over the network to the sender.</description>
 		</attribute>

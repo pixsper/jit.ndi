@@ -17,6 +17,7 @@
 
 #include <jit.common.h>
 #include <max.jit.mop.h>
+#include <ext_dictobj.h>
 
 #include <Processing.NDI.Lib.h>
 
@@ -49,7 +50,6 @@ typedef struct _jit_ndi_receive
 	NDIlib_recv_instance_t ndiReceiver;
 	NDIlib_framesync_instance_t ndiFrameSync;
 
-	t_dictionary* sources;
 	t_symbol* activeSourceId;
 
 	t_jit_object* matrix;
@@ -110,8 +110,11 @@ void jit_ndi_receive_process_video(t_jit_ndi_receive* x, const NDIlib_video_fram
 void jit_ndi_receive_startaudio(t_jit_ndi_receive* x, double samplerate);
 void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampleFrames);
 
-void jit_ndi_receive_refreshsources(t_jit_ndi_receive* x);
 void jit_ndi_receive_update_tally(t_jit_ndi_receive* x);
+
+t_symbol* jit_ndi_receive_getsourcelist(t_jit_ndi_receive* x);
+t_symbol* jit_ndi_receive_getsource(t_jit_ndi_receive* x);
+t_symbol* jit_ndi_receive_setsource(t_jit_ndi_receive* x, t_symbol* s);
 
 t_jit_err jit_ndi_receive_setattr_hostname(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_receive_setattr_sourcename(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
@@ -145,6 +148,11 @@ t_jit_err jit_ndi_receive_init()
 
 	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_startaudio, "audio_start", A_CANT, 0L);
 	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_get_samples, "get_samples", A_CANT, 0L);
+
+	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_getsourcelist, "getsourcelist", A_CANT, 0L);
+	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_getsource, "getsource", A_CANT, 0L);
+
+	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_setsource, "setsource", A_SYM, 0L);
 
 	long attrflags = JIT_ATTR_GET_DEFER_LOW | JIT_ATTR_SET_USURP_LOW;
 
@@ -293,11 +301,11 @@ t_jit_err jit_ndi_receive_init()
 }
 
 
-t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName, t_atom_long numAudioChannels)
+t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName, long numAudioChannels)
 {
 	t_jit_ndi_receive* x;
 
-	if (!ndiLib->NDIlib_initialize())
+	if (!ndiLib->initialize())
 	{
 		jit_object_error(NULL, "jit.ndi.receive~: This machine does not meet the specification required to run NDI.");
 		return NULL;
@@ -344,8 +352,7 @@ t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName,
 	NDIlib_find_create_t finderCreateDesc = { 0 };
 	finderCreateDesc.show_local_sources = true;
 
-	x->ndiFinder = ndiLib->NDIlib_find_create_v2(&finderCreateDesc);
-	x->sources = dictionary_new();
+	x->ndiFinder = ndiLib->find_create_v2(&finderCreateDesc);
 
 	jit_ndi_receive_create_receiver(x);
 
@@ -357,8 +364,7 @@ void jit_ndi_receive_free(t_jit_ndi_receive* x)
 	if (!x)
 		return;
 
-	ndiLib->NDIlib_find_destroy(x->ndiFinder);
-	object_free(x->sources);
+	ndiLib->find_destroy(x->ndiFinder);
 
 	jit_ndi_receive_free_receiver(x);
 
@@ -376,9 +382,9 @@ t_jit_err jit_ndi_receive_matrix_calc(t_jit_ndi_receive* x, void* inputs, void* 
 	if (x->ndiFrameSync != NULL)
 	{
 		NDIlib_video_frame_v2_t videoFrame = { 0 };
-		ndiLib->NDIlib_framesync_capture_video(x->ndiFrameSync, &videoFrame, NDIlib_frame_format_type_progressive);
+		ndiLib->framesync_capture_video(x->ndiFrameSync, &videoFrame, NDIlib_frame_format_type_progressive);
 		jit_ndi_receive_process_video(x, &videoFrame);
-		ndiLib->NDIlib_framesync_free_video(x->ndiFrameSync, &videoFrame);
+		ndiLib->framesync_free_video(x->ndiFrameSync, &videoFrame);
 	}
 
 	if (x && outputMatrix)
@@ -421,7 +427,7 @@ t_jit_err jit_ndi_receive_matrix_calc(t_jit_ndi_receive* x, void* inputs, void* 
 void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 {
 	if (x->ndiReceiver != NULL)
-		ndiLib->NDIlib_recv_destroy(x->ndiReceiver);
+		ndiLib->recv_destroy(x->ndiReceiver);
 
 	if (x->activeSourceId == NULL)
 		return;
@@ -434,14 +440,14 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 	receiverCreateDesc.allow_video_fields = false;
 	receiverCreateDesc.bandwidth = x->attrLowBandwidth ? NDIlib_recv_bandwidth_lowest : NDIlib_recv_bandwidth_highest;
 
-	x->ndiReceiver = ndiLib->NDIlib_recv_create_v3(&receiverCreateDesc);
+	x->ndiReceiver = ndiLib->recv_create_v3(&receiverCreateDesc);
 	if (x->ndiReceiver == NULL)
 	{
 		object_error((t_object*)x, "Failed to connect to source '%s'", x->attrSourceName->s_name);
 		return;
 	}
 
-	x->ndiFrameSync = ndiLib->NDIlib_framesync_create(x->ndiReceiver);
+	x->ndiFrameSync = ndiLib->framesync_create(x->ndiReceiver);
 
 	systhread_create((method)jit_ndi_receive_threadproc, x, 0, 0, 0, &x->receiveThread);
 }
@@ -458,9 +464,9 @@ void jit_ndi_receive_free_receiver(t_jit_ndi_receive* x)
 	x->receiveThread = NULL;
 	x->isCancelThread = false;
 
-	ndiLib->NDIlib_framesync_destroy(x->ndiFrameSync);
+	ndiLib->framesync_destroy(x->ndiFrameSync);
 
-	ndiLib->NDIlib_recv_destroy(x->ndiReceiver);
+	ndiLib->recv_destroy(x->ndiReceiver);
 }
 
 
@@ -471,14 +477,14 @@ void jit_ndi_receive_threadproc(t_jit_ndi_receive* x)
 	while(!x->isCancelThread)
 	{
 
-		switch (ndiLib->NDIlib_recv_capture_v2(x->ndiReceiver, NULL, NULL, &metadataFrame, 250))
+		switch (ndiLib->recv_capture_v2(x->ndiReceiver, NULL, NULL, &metadataFrame, 250))
 		{	
 			default:
 			case NDIlib_frame_type_none:
 				break;
 
 			case NDIlib_frame_type_metadata:
-				ndiLib->NDIlib_recv_free_metadata(x->ndiReceiver, &metadataFrame);
+				ndiLib->recv_free_metadata(x->ndiReceiver, &metadataFrame);
 				break;
 
 			case NDIlib_frame_type_status_change:
@@ -521,7 +527,7 @@ void jit_ndi_receive_process_video(t_jit_ndi_receive* x, const NDIlib_video_fram
 	jit_object_method(x->matrix,_jit_sym_getdata, &data);
 
 	if (data == NULL)
-		return true;
+		return;
 
 	uint8_t* src = videoFrame->p_data;
 	uint8_t* dst = (uint8_t*)data;
@@ -569,10 +575,13 @@ void jit_ndi_receive_startaudio(t_jit_ndi_receive* x, double samplerate)
 
 void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampleFrames)
 {
+	if (x->attrNumAudioChannels == 0)
+		return;
+	
 	assert(x->samplerate != 0);
 
 	NDIlib_audio_frame_v2_t audioFrame = { 0 };
-	ndiLib->NDIlib_framesync_capture_audio(x->ndiFrameSync, &audioFrame, x->samplerate, x->attrNumAudioChannels, sampleFrames);
+	ndiLib->framesync_capture_audio(x->ndiFrameSync, &audioFrame, x->samplerate, x->attrNumAudioChannels, sampleFrames);
 
 	assert(audioFrame.no_channels == x->attrNumAudioChannels);
 	assert(audioFrame.no_samples == sampleFrames);
@@ -586,15 +595,28 @@ void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampl
 			*dst++ = *src++;
 	}
 
-	ndiLib->NDIlib_framesync_free_audio(x->ndiFrameSync, &audioFrame);
+	ndiLib->framesync_free_audio(x->ndiFrameSync, &audioFrame);
 }
 
-void jit_ndi_receive_refreshsources(t_jit_ndi_receive* x)
+void jit_ndi_receive_update_tally(t_jit_ndi_receive* x)
 {
-	dictionary_clear(x->sources);
+	if (x->ndiReceiver == NULL)
+		return;
 
+	NDIlib_tally_t tallyState;
+	tallyState.on_program = x->attrTallyOnProgram;
+	tallyState.on_preview = x->attrTallyOnPreview;
+	ndiLib->recv_set_tally(x->ndiReceiver, &tallyState);
+}
+
+t_symbol* jit_ndi_receive_getsourcelist(t_jit_ndi_receive* x)
+{
+	t_dictionary* d = dictionary_new();
+	t_symbol* dictName = NULL;
+	dictobj_register(d, &dictName);
+	
 	uint32_t numSources = 0;
-	const NDIlib_source_t* sources = ndiLib->NDIlib_find_get_current_sources(x->ndiFinder, &numSources);
+	const NDIlib_source_t* sources = ndiLib->find_get_current_sources(x->ndiFinder, &numSources);
 
 	for (uint32_t i = 0; i < numSources; ++i)
 	{
@@ -609,27 +631,40 @@ void jit_ndi_receive_refreshsources(t_jit_ndi_receive* x)
 
 		t_dictionary* hostSources = NULL;
 
-		if (dictionary_getdictionary(x->sources, hostName, (t_object**)&hostSources) != MAX_ERR_NONE)
+		if (dictionary_getdictionary(d, hostName, (t_object**)&hostSources) != MAX_ERR_NONE)
 		{
 			hostSources = dictionary_new();
-			dictionary_appenddictionary(x->sources, hostName, (t_object*)hostSources);
+			dictionary_appenddictionary(d, hostName, (t_object*)hostSources);
 		}
 
 		dictionary_appendsym(hostSources, sourceName, gensym(sources[i].p_ndi_name));
 	}
+
+	return dictName;
 }
 
-void jit_ndi_receive_update_tally(t_jit_ndi_receive* x)
+t_symbol* jit_ndi_receive_getsource(t_jit_ndi_receive* x)
 {
-	if (x->ndiReceiver == NULL)
-		return;
-
-	NDIlib_tally_t tallyState;
-	tallyState.on_program = x->attrTallyOnProgram;
-	tallyState.on_preview = x->attrTallyOnPreview;
-	ndiLib->NDIlib_recv_set_tally(x->ndiReceiver, &tallyState);
+	return x->activeSourceId;
 }
 
+t_symbol* jit_ndi_receive_setsource(t_jit_ndi_receive* x, t_symbol* s)
+{
+	t_symbol* hostName = NULL;
+	t_symbol* sourceName = NULL;
+	
+	if (!unpack_source_id(&hostName, &sourceName, s->s_name))
+	{
+		jit_object_error((t_object*)x, "doesn't understand \"%s\"", s);
+	}
+	else
+	{
+		x->attrHostName = hostName;
+		x->attrSourceName = sourceName;
+		x->activeSourceId = s;
+		jit_ndi_receive_create_receiver(x);
+	}
+}
 
 
 t_jit_err jit_ndi_receive_setattr_hostname(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv)

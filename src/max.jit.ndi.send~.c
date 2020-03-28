@@ -46,6 +46,8 @@ t_symbol* _sym_add_samples;
 t_symbol* _sym_tally_onprogram;
 t_symbol* _sym_tally_onpreview;
 t_symbol* _sym_runtimeurl;
+t_symbol* _sym_getnuminputchannels;
+t_symbol* _sym_inputchanged;
 
 t_jit_err jit_ndi_send_init();
 
@@ -57,6 +59,8 @@ void max_jit_ndi_send_notify(t_max_jit_ndi_send* x, t_symbol* s, t_symbol* msg, 
 
 void max_jit_ndi_send_dsp64(t_max_jit_ndi_send* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags);
 long max_jit_ndi_send_multichanneloutputs(t_max_jit_ndi_send* x, long outletIndex);
+long max_jit_ndi_send_inputchanged(t_max_jit_ndi_send *x, long index, long count);
+
 void max_jit_ndi_send_perform64(t_max_jit_ndi_send* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam);
 
 void max_jit_ndi_send_printversion(t_max_jit_ndi_send* x);
@@ -77,6 +81,7 @@ void ext_main(void* r)
 	_sym_tally_onprogram = gensym("tally_onprogram");
 	_sym_tally_onpreview = gensym("tally_onpreview");
 	_sym_runtimeurl = gensym("runtimeurl");
+	_sym_getnuminputchannels = gensym("getnuminputchannels");
 
 	jit_ndi_send_init();
 
@@ -94,7 +99,7 @@ void ext_main(void* r)
 	class_addmethod(maxclass, (method)max_jit_ndi_send_notify, "notify", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_dsp64, "dsp64", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_multichanneloutputs, "multichanneloutputs", A_CANT, 0);
-
+	
 	class_addmethod(maxclass, (method)max_jit_ndi_send_printversion, "version", 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_send_getruntimeurl, "getruntimeurl", 0);
 
@@ -110,7 +115,7 @@ void* max_jit_ndi_send_new(t_symbol *s, long argc, t_atom *argv)
 
 	if (!((x = (t_max_jit_ndi_send *)max_jit_object_alloc(max_jit_ndi_send_class, _sym_jit_ndi_send))))
 	{
-		error("jit.ndi.send: could not allocate max object");
+		error("jit.ndi.send~: could not allocate max object");
 		return NULL;
 	}
 
@@ -125,26 +130,13 @@ void* max_jit_ndi_send_new(t_symbol *s, long argc, t_atom *argv)
 		{
 			x->sourceName = as;
 		}
-
-		t_atom_long al;
-		if (!jit_atom_arg_getlong(&al, 1, attrstart, argv))
-		{
-			x->numAudioChannels = MAX(al, 0);
-
-			if (x->numAudioChannels > 250)
-			{
-				object_error((t_object*)x, "Can't have greater than %ld signal inlets", 250);
-				freeobject((t_object*)x);
-				return NULL;
-			}
-		}
 	}
 
-	dsp_setup((t_pxobject*)x, x->numAudioChannels);
+	dsp_setup((t_pxobject*)x, 1);
 	x->object.z_misc |= Z_NO_INPLACE | Z_MC_INLETS;
 
 	// instantiate Jitter object with dest_name arg
-	if (!((x->jitObject = jit_object_new(_sym_jit_ndi_send, x->sourceName, x->numAudioChannels))))
+	if (!((x->jitObject = jit_object_new(_sym_jit_ndi_send, x->sourceName))))
 	{
 		object_error((t_object*)x, "Could not allocate jitter object");
 		freeobject((t_object*)x);
@@ -176,10 +168,7 @@ void max_jit_ndi_send_assist(t_max_jit_ndi_send* x, void* b, long io, long index
         case 1:
             switch (index) {
                 case 0:
-                    strncpy_zero(s, "(matrix) in", 512);
-                    break;
-                case 1:
-                    strncpy_zero(s, "(multi-channel signal) in", 512);
+                    strncpy_zero(s, "(matrix, multi-channel signal) in", 512);
                     break;
             }
             break;
@@ -211,7 +200,9 @@ void max_jit_ndi_send_notify(t_max_jit_ndi_send* x, t_symbol* s, t_symbol* msg, 
 
 void max_jit_ndi_send_dsp64(t_max_jit_ndi_send* x, t_object* dsp64, short* count, double samplerate, long maxvectorsize, long flags)
 {
-	object_method_direct(void, (t_jit_object*, double), x->jitObject, _sym_audio_start, samplerate);
+	const long numChannels = (long)object_method(dsp64, _sym_getnuminputchannels, x, 0);
+	object_method_direct(void, (t_jit_object*, double, long), x->jitObject, _sym_audio_start, samplerate, numChannels);
+	
 	jit_object_method(dsp64, gensym("dsp_add64"), x, max_jit_ndi_send_perform64, 0, NULL);
 }
 
@@ -227,8 +218,8 @@ void max_jit_ndi_send_perform64(t_max_jit_ndi_send* x, t_object* dsp64, double**
 
 void max_jit_ndi_send_printversion(t_max_jit_ndi_send* x)
 {
-	object_post((t_object*)x, "jit.ndi.send~ V%ld.%ld.%ld - Copyright (C) 2018 David Butler / The Impersonal Stereo",
-		JIT_NDI_VERSION_MAJOR, JIT_NDI_VERSION_MINOR, JIT_NDI_VERSION_BUGFIX);
+	object_post((t_object*)x, "jit.ndi.send~ V%ld.%ld.%ld - %s",
+		JIT_NDI_VERSION_MAJOR, JIT_NDI_VERSION_MINOR, JIT_NDI_VERSION_BUGFIX, JIT_NDI_COPYRIGHT);
 }
 
 void max_jit_ndi_send_getruntimeurl(t_max_jit_ndi_send* x)

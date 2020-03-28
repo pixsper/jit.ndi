@@ -21,6 +21,7 @@
 #include <ext_atomic.h>
 #include <z_dsp.h>
 #include <max.jit.mop.h>
+#include <ext_dictobj.h>
 
 #include <Processing.NDI.Lib.h>
 
@@ -43,6 +44,11 @@ typedef struct _max_jit_ndi_receive
 } t_max_jit_ndi_receive;
 
 t_symbol* _sym_jit_ndi_receive;
+t_symbol* _sym_sourcelist;
+t_symbol* _sym_getsourcelist;
+t_symbol* _sym_getsource;
+t_symbol* _sym_setsource;
+t_symbol* _sym_sourcelistmenu;
 t_symbol* _sym_audio_start;
 t_symbol* _sym_get_samples;
 t_symbol* _sym_ptz_autofocus;
@@ -52,6 +58,10 @@ t_symbol* _sym_ptz_whitebalance_red;
 t_symbol* _sym_ptz_whitebalance_blue;
 t_symbol* _sym_ptz_autoexposure;
 t_symbol* _sym_ptz_exposure;
+t_symbol* _sym_tally_onprogram;
+t_symbol* _sym_tally_onpreview;
+t_symbol* _sym_runtimeurl;
+
 
 t_jit_err jit_ndi_receive_init();
 
@@ -63,6 +73,9 @@ void max_jit_ndi_receive_notify(t_max_jit_ndi_receive* x, t_symbol* s, t_symbol*
 void max_jit_ndi_outputmatrix(t_max_jit_ndi_receive *x);
 
 void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x);
+void max_jit_ndi_receive_getsourcelistmenu(t_max_jit_ndi_receive* x);
+void max_jit_ndi_receive_getsource(t_max_jit_ndi_receive* x);
+void max_jit_ndi_receive_setsource(t_max_jit_ndi_receive* x, t_symbol* s, long argc, t_atom* argv);
 
 void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short* count, double samplerate,
 							   long maxvectorsize, long flags);
@@ -71,6 +84,9 @@ void max_jit_ndi_receive_perform64(t_max_jit_ndi_receive* x, t_object* dsp64, do
 								   long numouts, long sampleframes, long flags, void* userparam);
 
 void max_jit_ndi_receive_printversion(t_max_jit_ndi_receive* x);
+void max_jit_ndi_receive_getruntimeurl(t_max_jit_ndi_receive* x);
+
+t_symbol* max_jit_ndi_gethostname(t_max_jit_ndi_receive* x);
 
 t_class* max_jit_ndi_receive_class;
 
@@ -82,6 +98,11 @@ void ext_main(void* r)
 
 	common_symbols_init();
 	_sym_jit_ndi_receive = gensym("jit_ndi_receive");
+	_sym_sourcelist = gensym("sourcelist");
+	_sym_getsourcelist = gensym("getsourcelist");
+	_sym_getsource = gensym("getsource");
+	_sym_setsource = gensym("setsource");
+	_sym_sourcelistmenu = gensym("sourcelistmenu");
 	_sym_audio_start = gensym("audio_start");
 	_sym_get_samples = gensym("get_samples");
 	_sym_ptz_autofocus = gensym("ptz_autofocus");
@@ -91,6 +112,9 @@ void ext_main(void* r)
 	_sym_ptz_whitebalance_blue = gensym("ptz_whitebalance_blue");
 	_sym_ptz_autoexposure = gensym("ptz_autoexposure");
 	_sym_ptz_exposure = gensym("ptz_exposure");
+	_sym_tally_onprogram = gensym("tally_onprogram");
+	_sym_tally_onpreview = gensym("tally_onpreview");
+	_sym_runtimeurl = gensym("runtimeurl");
 
 	jit_ndi_receive_init();
 
@@ -111,8 +135,12 @@ void ext_main(void* r)
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_dsp64, "dsp64", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_multichanneloutputs, "multichanneloutputs", A_CANT, 0);
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_getsourcelist, "getsourcelist", 0);
+	class_addmethod(maxclass, (method)max_jit_ndi_receive_getsourcelistmenu, "getsourcelistmenu", 0);
+	class_addmethod(maxclass, (method)max_jit_ndi_receive_getsource, "getsource", 0);
+	class_addmethod(maxclass, (method)max_jit_ndi_receive_setsource, "anything", A_GIMME, 0);
 
 	class_addmethod(maxclass, (method)max_jit_ndi_receive_printversion, "version", 0);
+	class_addmethod(maxclass, (method)max_jit_ndi_receive_getruntimeurl, "getruntimeurl", 0);
 
 	max_jit_class_addmethod_usurp_low(maxclass, (method)max_jit_ndi_outputmatrix, "outputmatrix");
 
@@ -127,7 +155,7 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 
 	if (!((x = (t_max_jit_ndi_receive *)max_jit_object_alloc(max_jit_ndi_receive_class, _sym_jit_ndi_receive))))
 	{
-		error("jit.ndi.send: could not allocate max object");
+		error("jit.ndi.receive~: could not allocate max object");
 		return NULL;
 	}
 
@@ -135,7 +163,49 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 	x->numAudioChannels = 0;
 
 	const long attrstart = max_jit_attr_args_offset(argc, argv);
-	if (attrstart && argv)
+	if (argc == 1)
+	{
+		x->hostName = max_jit_ndi_gethostname(x);
+		
+		if (atom_gettype(argv) == A_LONG)
+		{
+			t_atom_long numAudioChannels;
+			if (!jit_atom_arg_getlong(&numAudioChannels, 0, attrstart, argv))
+				x->numAudioChannels = numAudioChannels;
+		}
+		else
+		{
+			t_symbol* sourceName;
+			if (!jit_atom_arg_getsym(&sourceName, 0, attrstart, argv))
+				x->sourceName = sourceName;
+		}	
+	}
+	else if (argc == 2)
+	{
+		if (atom_gettype(argv + 1) == A_LONG)
+		{
+			x->hostName = max_jit_ndi_gethostname(x);
+			
+			t_symbol* sourceName;
+			if (!jit_atom_arg_getsym(&sourceName, 0, attrstart, argv))
+				x->sourceName = sourceName;
+
+			t_atom_long numAudioChannels;
+			if (!jit_atom_arg_getlong(&numAudioChannels, 1, attrstart, argv))
+				x->numAudioChannels = numAudioChannels;
+		}
+		else
+		{
+			t_symbol* hostName;
+			if (!jit_atom_arg_getsym(&hostName, 0, attrstart, argv))
+				x->hostName = hostName;
+
+			t_symbol* sourceName;
+			if (!jit_atom_arg_getsym(&sourceName, 1, attrstart, argv))
+				x->sourceName = sourceName;
+		}
+	}
+	else if (argc == 3)
 	{
 		t_symbol* hostName;
 		if (!jit_atom_arg_getsym(&hostName, 0, attrstart, argv))
@@ -147,16 +217,7 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 
 		t_atom_long numAudioChannels;
 		if (!jit_atom_arg_getlong(&numAudioChannels, 2, attrstart, argv))
-		{
-			x->numAudioChannels = MAX(numAudioChannels, 0);
-
-			if (x->numAudioChannels > 250)
-			{
-				object_error((t_object*)x, "Can't have greater than %ld signal inlets", 250);
-				freeobject((t_object*)x);
-				return NULL;
-			}
-		}
+			x->numAudioChannels = numAudioChannels;
 	}
 
 	dsp_setup((t_pxobject*)x, 0);
@@ -172,7 +233,7 @@ void* max_jit_ndi_receive_new(t_symbol* s, long argc, t_atom* argv)
 
 	max_jit_mop_setup_simple(x, x->jitObject, 0, NULL);
 	max_jit_attr_args(x, argc, argv);
-
+	
 	if (x->numAudioChannels > 0)
 		outlet_new((t_object * )x, "multichannelsignal");
 
@@ -200,18 +261,33 @@ void max_jit_ndi_receive_assist(t_max_jit_ndi_receive* x, void* b, long io, long
 			strncpy_zero(s, "bang, messages in", 512);
             break;
         case 2:
-			switch (index)
+			if (x->numAudioChannels > 0)
 			{
-				case 0:
-					strncpy_zero(s, "(matrix) out", 512);
-	                break;
-	            case 1:
-					strncpy_zero(s, "(multi-channel signal) out", 512);
-	                break;
-				case 2:
-					strncpy_zero(s, "dumpout", 512);
-	                break;
-	        }
+				switch (index)
+				{
+					case 0:
+						strncpy_zero(s, "(multi-channel signal) out", 512);
+		                break;
+		            case 1:
+						strncpy_zero(s, "(matrix) out", 512);
+		                break;
+					case 2:
+						strncpy_zero(s, "dumpout", 512);
+		                break;
+		        }
+			}
+			else
+			{
+				switch (index)
+				{
+		            case 0:
+						strncpy_zero(s, "(matrix) out", 512);
+		                break;
+					case 1:
+						strncpy_zero(s, "dumpout", 512);
+		                break;
+		        }
+			}
             break;
     }
 }
@@ -253,7 +329,75 @@ void max_jit_ndi_outputmatrix(t_max_jit_ndi_receive *x)
 
 void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x)
 {
+	t_symbol* sourceListDictName = (t_symbol*)jit_object_method((t_object *)x->jitObject, _sym_getsourcelist);
+	t_atom argv[2];
+	atom_setsym(argv, _sym_dictionary);
+	atom_setsym(argv + 1, sourceListDictName);
+	max_jit_obex_dumpout(x, _sym_sourcelist, 2, argv);
+}
+
+void max_jit_ndi_receive_getsource(t_max_jit_ndi_receive* x)
+{
+	t_symbol* sourceName = (t_symbol*)jit_object_method((t_object *)x->jitObject, _sym_getsource);
+	t_atom argv[1];
+	atom_setsym(argv, sourceName);
+	max_jit_obex_dumpout(x, _sym_source, 1, argv);
+}
+
+void max_jit_ndi_receive_setsource(t_max_jit_ndi_receive* x, t_symbol* s, long argc, t_atom* argv)
+{
+	if (argc != 0)
+		object_error((t_object*)x, "doesn't understand \"%s\"", s);
+	else
+		jit_object_method((t_object *)x->jitObject, _sym_setsource, s);
+}
+
+void max_jit_ndi_receive_getsourcelistmenu(t_max_jit_ndi_receive* x)
+{
+	t_atom argv[2];
+	atom_setsym(argv, _sym_clear);
+	max_jit_obex_dumpout(x, _sym_sourcelistmenu, 1, argv);
+
+	atom_setsym(argv, _sym_append);
 	
+	t_symbol* sourceListDictName = (t_symbol*)jit_object_method((t_object *)x->jitObject, _sym_getsourcelist);
+
+	t_dictionary* sources = dictobj_findregistered_retain(sourceListDictName);
+	assert(sources);
+
+	if (!sources)
+		return;
+
+	long numHostKeys;
+	t_symbol** hostKeys;
+	
+	dictionary_getkeys(sources, &numHostKeys, &hostKeys);
+
+	for(int i = 0; i < numHostKeys; ++i)
+	{
+		t_dictionary* hostSources = NULL;
+		dictionary_getdictionary(sources, hostKeys[i], (t_object**)&hostSources);
+
+		if (!hostSources)
+			continue;
+		
+		long numSourceKeys;
+		t_symbol** sourceKeys;
+	
+		dictionary_getkeys(hostSources, &numSourceKeys, &sourceKeys);
+
+		for (int j = 0; j < numSourceKeys; ++j)
+		{
+			t_symbol* value = NULL;
+			dictionary_getsym(hostSources, sourceKeys[j], &value);
+
+			if (!value)
+				continue;
+			
+			atom_setsym(argv + 1, value);
+			max_jit_obex_dumpout(x, _sym_sourcelistmenu, 2, argv);
+		}
+	}
 }
 
 void max_jit_ndi_receive_dsp64(t_max_jit_ndi_receive* x, t_object* dsp64, short* count, double samplerate,
@@ -276,6 +420,33 @@ void max_jit_ndi_receive_perform64(t_max_jit_ndi_receive* x, t_object* dsp64, do
 
 void max_jit_ndi_receive_printversion(t_max_jit_ndi_receive* x)
 {
-	object_post((t_object*)x, "jit.ndi.receive~ V%ld.%ld.%ld - Copyright (C) 2018 David Butler / The Impersonal Stereo",
-		JIT_NDI_VERSION_MAJOR, JIT_NDI_VERSION_MINOR, JIT_NDI_VERSION_BUGFIX);
+	object_post((t_object*)x, "jit.ndi.receive~ V%ld.%ld.%ld - %s",
+		JIT_NDI_VERSION_MAJOR, JIT_NDI_VERSION_MINOR, JIT_NDI_VERSION_BUGFIX, JIT_NDI_COPYRIGHT);
+}
+
+void max_jit_ndi_receive_getruntimeurl(t_max_jit_ndi_receive* x)
+{
+	t_atom argv;
+	atom_setsym(&argv, gensym(NDILIB_REDIST_URL));
+	max_jit_obex_dumpout(x, _sym_runtimeurl, 1, &argv);
+}
+
+t_symbol* max_jit_ndi_gethostname(t_max_jit_ndi_receive* x)
+{
+#ifdef WIN_VERSION
+		
+	TCHAR  computerName[MAX_COMPUTERNAME_LENGTH+1];
+	DWORD  bufferSize = MAX_COMPUTERNAME_LENGTH+1;
+	GetComputerName(computerName, &bufferSize);
+
+	return gensym(computerName);
+		
+#else
+		
+	char hostname[HOST_NAME_MAX];
+	gethostname(hostname, HOST_NAME_MAX);
+
+	return gensym(hostname);
+		
+#endif
 }
