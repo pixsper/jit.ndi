@@ -78,25 +78,47 @@ inline bool load_ndi_runtime(NDIlib_v4** ndiLib)
 
 #include <dlfcn.h>
 
+void free_ndi_runtime(void* handle)
+{
+    if (handle != NULL)
+    {
+        dlclose(handle);
+        handle = NULL;
+    }
+}
+
 bool load_ndi_runtime(NDIlib_v4** ndiLib)
 {
 	char ndiRuntimePath[MAX_PATH_CHARS];
 	
 	const char* ndiRuntimeDirPath = getenv(NDILIB_REDIST_FOLDER);
 	if (ndiRuntimeDirPath)
+    {
+        post("Loading NDI Runtime from environent varable path - '%s'", ndiRuntimeDirPath);
 		snprintf(ndiRuntimePath, MAX_PATH_CHARS, "%s%s", ndiRuntimeDirPath, NDILIB_LIBRARY_NAME);
+    }
 	else
+    {
 		strncpy(ndiRuntimePath, NDILIB_LIBRARY_NAME, MAX_PATH_CHARS);
-	
+    }
+    
+    dlerror();
 	void* ndiLibHandle = dlopen(ndiRuntimePath, RTLD_LOCAL | RTLD_LAZY);
-	
-	const NDIlib_v4* (*NDIlib_v4_load)(void) = NULL;
-	if (ndiLibHandle)
-		*((void**)&NDIlib_v4_load) = dlsym(ndiLibHandle, "NDIlib_v4_load");
-	
+	if (!ndiLibHandle)
+    {
+        error("Can't find NDI runtime library - '%s'. Please download and/or reinstall NDI runtime from '%s' and restart Max", dlerror(), NDILIB_REDIST_URL);
+        return false;
+    }
+    
+    quittask_install((method)free_ndi_runtime, ndiLibHandle);
+        
+    const NDIlib_v4* (*NDIlib_v4_load)(void) = NULL;
+    
+    dlerror();
+    *((void**)&NDIlib_v4_load) = dlsym(ndiLibHandle, "NDIlib_v4_load");
 	if (!NDIlib_v4_load)
 	{
-		error("Unable to load NDI runtime library. Please download and/or reinstall NDI runtime from '%s' and restart Max", NDILIB_REDIST_URL);
+		error("Unable to load NDI runtime library - '%s'. Please download and/or reinstall NDI runtime from '%s' and restart Max", dlerror(), NDILIB_REDIST_URL);
 		return false;
 	}
 	
