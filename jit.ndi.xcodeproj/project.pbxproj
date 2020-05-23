@@ -206,6 +206,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 089C166AFE841209C02AAC07 /* iterator */;
@@ -279,14 +280,12 @@
 		2FBBEAD008F335010078DB84 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
 			};
 			name = Development;
 		};
 		2FBBEAD108F335010078DB84 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
 			};
 			name = Deployment;
 		};

@@ -99,7 +99,7 @@ bool load_ndi_runtime(NDIlib_v4** ndiLib)
     }
 	else
     {
-		strncpy(ndiRuntimePath, NDILIB_LIBRARY_NAME, MAX_PATH_CHARS);
+        snprintf(ndiRuntimePath, MAX_PATH_CHARS, "%s%s", "/usr/local/lib/", NDILIB_LIBRARY_NAME);
     }
     
     dlerror();
