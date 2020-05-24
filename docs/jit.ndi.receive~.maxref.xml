@@ -51,6 +51,59 @@
 			<digest>Prints the jit.ndi package version to the Max window.</digest>
 			<description>Prints the jit.ndi package version to the Max window.</description>
 		</method>
+		
+		<method name='getsource'>
+			<digest>Outputs the name of the current NDI source from the dump outlet.</digest>
+			<description>Outputs the name of the current NDI source from the dump outlet.</description>
+		</method>
+		
+		<method name='anything'>
+			<arglist>
+				<arg name="source host and name" optional="0" type="symbol" />
+			</arglist>
+			<digest>Sets the current NDI source.</digest>
+			<description>Sets the current NDI source. Symbol should be formatted as 'HOSTNAME (SOURCENAME)'.</description>
+		</method>
+		
+		<method name='setsource'>
+			<arglist>
+				<arg name="source host and name" optional="0" type="symbol" />
+			</arglist>
+			<digest>Sets the current NDI source.</digest>
+			<description>Sets the current NDI source. Symbol should be formatted as 'HOSTNAME (SOURCENAME)'.</description>
+		</method>
+		
+		<method name='getsourcelist'>
+			<digest>Outputs a dictionary containing discovered NDI sources from the dump outlet.</digest>
+			<description>Outputs a dictionary containing discovered NDI sources from the dump outlet.</description>
+		</method>
+		
+		<method name='getsourcelistmenu'>
+			<digest>Outputs messages from the dump outlet which can be used to populate a umenu with a list of discovered NDI sources.</digest>
+			<description>Outputs messages from the dump outlet which can be used to populate a umenu with a list ofdiscovered NDI sources.</description>
+		</method>
+		
+		<method name='getsourcelistmenu'>
+			<digest>Outputs messages from the dump outlet which can be used to populate a umenu with a list of discovered NDI sources.</digest>
+			<description>Outputs messages from the dump outlet which can be used to populate a umenu with a list ofdiscovered NDI sources.</description>
+		</method>
+		
+		<method name='ptz_store_preset'>
+			<arglist>
+				<arg name="preset index" optional="0" type="int" />
+			</arglist>
+			<digest>Stores a PTZ preset on the NDI source.</digest>
+			<description>Stores a PTZ preset on the NDI source. Must be in range 0 to 99. Will only be sent if the NDI source has reported as being PTZ capable.</description>
+		</method>
+		
+		<method name='ptz_recall_preset'>
+			<arglist>
+				<arg name="preset index" optional="0" type="int" />
+				<arg name="recall speed" optional="1" type="float" />
+			</arglist>
+			<digest>Stores a PTZ preset on the NDI source.</digest>
+			<description>Recalls a PTZ preset on the NDI source. Must be in range 0 to 99. Recall speed must be in range 0 to 1, where 1 is the fastest move possible. Will only be sent if the NDI source has reported as being PTZ capable.</description>
+		</method>
 
 	</methodlist>
 
@@ -87,6 +140,71 @@
 		<attribute name='tally_onprogram' get='1' set='1' type='long' size='1' >
 			<digest>Tally program status</digest>
 			<description>The tally status indicating whether this receiver is displaying the source on program. Will be communicated back over the network to the sender.</description>
+		</attribute>
+		
+		<attribute name='ptz_capable' get='1' set='0' type='float' size='1' >
+			<digest>Readonly attribute to indicate if the connected NDI source is PTZ capable.</digest>
+			<description>Readonly attribute to indicate if the connected NDI source is PTZ capable. All PTZ attributes will be disabled until this is set to 1.</description>
+		</attribute>
+		
+		<attribute name='ptz_zoom' get='1' set='1' type='float' size='1' >
+			<digest>Absolute PTZ zoom value</digest>
+			<description>Absolute PTZ zoom value. Sets the PTZ zoom value of the NDI source to this exact value.</description>
+		</attribute>
+		
+		<attribute name='ptz_zoom_speed' get='1' set='1' type='float' size='1' >
+			<digest>PTZ zoom adjustment speed.</digest>
+			<description>PTZ zoom adjustment speed. Instructs to source to continuously adjust it's PTZ zoom value at this speed. Best used with a joystick or other controller input which automatically re-centers to 0 when released.</description>
+		</attribute>
+		
+		<attribute name='ptz_pantilt' get='1' set='1' type='float' size='2' >
+			<digest>Absolute PTZ pan/tilt position</digest>
+			<description>Absolute PTZ pan/tilt position. Sets the PTZ pan/tilt position of the NDI source to this exact value.</description>
+		</attribute>
+		
+		<attribute name='ptz_pantilt_speed' get='1' set='1' type='float' size='2' >
+			<digest>PTZ pan/tilt adjustment speed</digest>
+			<description>PTZ pan/tilt adjustment speed. Instructs to source to continuously adjust it's PTZ pan/tilt position at this speed. Best used with a joystick or other controller input which automatically re-centers to 0 when released.</description>
+		</attribute>
+		
+		<attribute name='ptz_autofocus' get='1' set='1' type='int' size='1' >
+			<digest>PTZ autofocus enabled.</digest>
+			<description>PTZ autofocus enabled.</description>
+		</attribute>
+
+		<attribute name='ptz_focus' get='1' set='1' type='float' size='1' >
+			<digest>Absolute PTZ focus position.</digest>
+			<description>Absolute PTZ focus value. Sets the PTZ focus value of the NDI source to this exact value. Only applied when 'ptz_autofocus' is set to 0.</description>
+		</attribute>
+		
+		<attribute name='ptz_focus_speed' get='1' set='1' type='float' size='1' >
+			<digest>PTZ focus adjustment speed</digest>
+			<description>PTZ focus adjustment speed. Instructs to source to continuously adjust it's PTZ focus value at this speed. Best used with a joystick or other controller input which automatically re-centers to 0 when released.</description>
+		</attribute>
+		
+		<attribute name='ptz_whitebalance_mode' get='1' set='1' type='int' size='1' >
+			<digest>PTZ white balance mode</digest>
+			<description>PTZ white balance mode. 0 = Auto, 1 = Indoor, 2 = Outdoor, 3 = One-push, 4 = Manual. When in manual mode use 'ptz_whitebalance_red' and 'ptz_whitebalance_blue' to adjust white balance setting.</description>
+		</attribute>
+		
+		<attribute name='ptz_whitebalance_red' get='1' set='1' type='float' size='1' >
+			<digest>PTZ manual white balance red value.</digest>
+			<description>PTZ manual white balance red value. Only applied when 'ptz_whitebalance_mode' is set to 4 (manual).</description>
+		</attribute>
+		
+		<attribute name='ptz_whitebalance_blue' get='1' set='1' type='float' size='1' >
+			<digest>PTZ manual white balance blue value.</digest>
+			<description>PTZ manual white balance blue value. Only applied when 'ptz_whitebalance_mode' is set to 4 (manual).</description>
+		</attribute>
+		
+		<attribute name='ptz_autoexposure' get='1' set='1' type='int' size='1' >
+			<digest>PTZ auto exposure enabled.</digest>
+			<description>PTZ auto exposure enabled.</description>
+		</attribute>
+
+		<attribute name='ptz_exposure' get='1' set='1' type='float' size='1' >
+			<digest>Absolute PTZ exposure value</digest>
+			<description>Absolute PTZ exposure value. Sets the PTZ focus value of the NDI source to this exact value. Only applied when 'ptz_autoexposure' is set to 0.</description>
 		</attribute>
 
 	</attributelist>

@@ -43,6 +43,11 @@
 			<digest>Prints the jit.ndi package version to the Max window.</digest>
 			<description>Prints the jit.ndi package version to the Max window.</description>
 		</method>
+		
+		<method name='ptz_panic'>
+			<digest>Resets the values for ptz_zoom_speed, ptz_pantilt_speed and ptz_focus_speed attributes to zero.</digest>
+			<description>Resets the values for ptz_zoom_speed, ptz_pantilt_speed and ptz_focus_speed attributes to zero. This is intended for use in a situation where a PTZ controller has disconnected whilst still sending adjustment values.</description>
+		</method>
 
 	</methodlist>
 
@@ -76,11 +81,6 @@
 			<description>Whether PTZ control is allowed for this source. If enabled received PTZ control data will be output from the dump outlet.</description>
 		</attribute>
 		
-		<attribute name='kvm_enable' get='1' set='1' type='long' size='1' >
-			<digest>KVM control enable</digest>
-			<description>Whether KVM control is allowed for this source. If enabled received KVM control data will be output from the dump outlet.</description>
-		</attribute>
-		
 		<attribute name='tally_onpreview' get='1' set='0' type='long' size='1' >
 			<digest>Tally preview status</digest>
 			<description>The tally status of the source indicating whether any connected receivers are displaying the source on preview.</description>
@@ -89,6 +89,66 @@
 		<attribute name='tally_onpreview' get='1' set='0' type='long' size='1' >
 			<digest>Tally program status</digest>
 			<description>The tally status of the source indicating whether any connected receivers are displaying the source on program.</description>
+		</attribute>
+		
+		<attribute name='ptz_zoom_sensitivity' get='1' set='1' type='float' size='1' >
+			<digest>Adjusts the sensitivity of PTZ zoom adjustment from NDI receivers.</digest>
+			<description></description>
+		</attribute>
+		
+		<attribute name='ptz_pantilt_sensitivity' get='1' set='1' type='float' size='2' >
+			<digest>Adjusts the sensitivity of PTZ pan/tilt adjustment from NDI receivers.</digest>
+			<description></description>
+		</attribute>
+		
+		<attribute name='ptz_focus_sensitivity' get='1' set='1' type='float' size='1' >
+			<digest>Adjusts the sensitivity of PTZ focus adjustment from NDI receivers.</digest>
+			<description></description>
+		</attribute>
+		
+		<attribute name='ptz_zoom' get='1' set='1' type='float' size='1' >
+			<digest>Absolute PTZ zoom value</digest>
+			<description>Absolute PTZ zoom value. Sets the PTZ zoom value of the NDI source to this exact value. Can be adjusted locally but will be overwritten by any value sent from a connected NDI receiver.</description>
+		</attribute>
+		
+		<attribute name='ptz_pantilt' get='1' set='1' type='float' size='2' >
+			<digest>Absolute PTZ pan/tilt position</digest>
+			<description>Absolute PTZ pan/tilt position. Sets the PTZ pan/tilt position of the NDI source to this exact value. Can be adjusted locally but will be overwritten by any value sent from a connected NDI receiver.</description>
+		</attribute>
+		
+		<attribute name='ptz_autofocus' get='1' set='1' type='int' size='1' >
+			<digest>PTZ autofocus enabled.</digest>
+			<description>PTZ autofocus enabled. Can be adjusted locally but will be overwritten by any value sent from a connected NDI receiver.</description>
+		</attribute>
+
+		<attribute name='ptz_focus' get='1' set='1' type='float' size='1' >
+			<digest>Absolute PTZ focus position.</digest>
+			<description>Absolute PTZ focus value. Sets the PTZ focus value of the NDI source to this exact value. Only applied when 'ptz_autofocus' is set to 0. Can be adjusted locally but will be overwritten by any value sent from a connected NDI receiver.</description>
+		</attribute>
+		
+		<attribute name='ptz_whitebalance_mode' get='1' set='1' type='int' size='1' >
+			<digest>PTZ white balance mode</digest>
+			<description>PTZ white balance mode. 0 = Auto, 1 = Indoor, 2 = Outdoor, 3 = One-push, 4 = Manual. When in manual mode use 'ptz_whitebalance_red' and 'ptz_whitebalance_blue' to adjust white balance setting. Can be adjusted locally but will be overwritten by any value sent from a connected NDI receiver.</description>
+		</attribute>
+		
+		<attribute name='ptz_whitebalance_red' get='1' set='1' type='float' size='1' >
+			<digest>PTZ manual white balance red value.</digest>
+			<description>PTZ manual white balance red value. Only applied when 'ptz_whitebalance_mode' is set to 4 (manual). Can be adjusted locally but will be overwritten by any value sent from a connected NDI receiver.</description>
+		</attribute>
+		
+		<attribute name='ptz_whitebalance_blue' get='1' set='1' type='float' size='1' >
+			<digest>PTZ manual white balance blue value.</digest>
+			<description>PTZ manual white balance blue value. Only applied when 'ptz_whitebalance_mode' is set to 4 (manual). Can be adjusted locally but will be overwritten by any value sent from a connected NDI receiver.</description>
+		</attribute>
+		
+		<attribute name='ptz_autoexposure' get='1' set='1' type='int' size='1' >
+			<digest>PTZ auto exposure enabled.</digest>
+			<description>PTZ auto exposure enabled. Can be adjusted locally but will be overwritten by any value sent from a connected NDI receiver.</description>
+		</attribute>
+
+		<attribute name='ptz_exposure' get='1' set='1' type='float' size='1' >
+			<digest>Absolute PTZ exposure value</digest>
+			<description>Absolute PTZ exposure value. Sets the PTZ focus value of the NDI source to this exact value. Only applied when 'ptz_autoexposure' is set to 0. Can be adjusted locally but will be overwritten by any value sent from a connected NDI receiver.</description>
 		</attribute>
 
 	</attributelist>
