@@ -16,6 +16,8 @@
 		637FEBF42057ED2800CA1F89 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63C5511E19539B9A00D657B5 /* CoreFoundation.framework */; };
 		637FEBFB2057ED4700CA1F89 /* jit.ndi.receive.c in Sources */ = {isa = PBXBuildFile; fileRef = 637FEBE42057ECF800CA1F89 /* jit.ndi.receive.c */; };
 		637FEBFC2057ED4A00CA1F89 /* max.jit.ndi.receive~.c in Sources */ = {isa = PBXBuildFile; fileRef = 637FEBE32057ECF800CA1F89 /* max.jit.ndi.receive~.c */; };
+		639910C2247AF2170054944F /* yxml.h in Headers */ = {isa = PBXBuildFile; fileRef = 639910C0247AF2170054944F /* yxml.h */; };
+		639910C3247AF2170054944F /* yxml.c in Sources */ = {isa = PBXBuildFile; fileRef = 639910C1247AF2170054944F /* yxml.c */; };
 		63A59303204068C300FF352E /* jit.ndi.send.c in Sources */ = {isa = PBXBuildFile; fileRef = 63A59302204068C300FF352E /* jit.ndi.send.c */; };
 		63A59305204068C900FF352E /* max.jit.ndi.send~.c in Sources */ = {isa = PBXBuildFile; fileRef = 63A59304204068C900FF352E /* max.jit.ndi.send~.c */; };
 		63A5930B2043A0FF00FF352E /* ndi_runtime.h in Headers */ = {isa = PBXBuildFile; fileRef = 63A5930A2043A0FF00FF352E /* ndi_runtime.h */; };
@@ -32,6 +34,8 @@
 		637FEBE32057ECF800CA1F89 /* max.jit.ndi.receive~.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "max.jit.ndi.receive~.c"; path = "src/max.jit.ndi.receive~.c"; sourceTree = "<group>"; };
 		637FEBE42057ECF800CA1F89 /* jit.ndi.receive.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jit.ndi.receive.c; path = src/jit.ndi.receive.c; sourceTree = "<group>"; };
 		637FEBF92057ED2800CA1F89 /* jit.ndi.receive~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "jit.ndi.receive~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
+		639910C0247AF2170054944F /* yxml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yxml.h; path = lib/yxml/yxml.h; sourceTree = "<group>"; };
+		639910C1247AF2170054944F /* yxml.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = yxml.c; path = lib/yxml/yxml.c; sourceTree = "<group>"; };
 		63A59302204068C300FF352E /* jit.ndi.send.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jit.ndi.send.c; path = src/jit.ndi.send.c; sourceTree = "<group>"; };
 		63A59304204068C900FF352E /* max.jit.ndi.send~.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "max.jit.ndi.send~.c"; path = "src/max.jit.ndi.send~.c"; sourceTree = "<group>"; };
 		63A5930A2043A0FF00FF352E /* ndi_runtime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ndi_runtime.h; path = src/ndi_runtime.h; sourceTree = "<group>"; };
@@ -75,6 +79,7 @@
 		089C166AFE841209C02AAC07 /* iterator */ = {
 			isa = PBXGroup;
 			children = (
+				639910BF247AF2050054944F /* yxml */,
 				63FE36D6195073C400B07A04 /* maxmspsdk.xcconfig */,
 				63FE370D1950748600B07A04 /* Max Objects */,
 				63FE3731195078E200B07A04 /* Max SDK */,
@@ -92,6 +97,15 @@
 				637FEBF92057ED2800CA1F89 /* jit.ndi.receive~.mxo */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		639910BF247AF2050054944F /* yxml */ = {
+			isa = PBXGroup;
+			children = (
+				639910C1247AF2170054944F /* yxml.c */,
+				639910C0247AF2170054944F /* yxml.h */,
+			);
+			name = yxml;
 			sourceTree = "<group>";
 		};
 		63A5930C2043A2AA00FF352E /* Frameworks */ = {
@@ -140,6 +154,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				639910C2247AF2170054944F /* yxml.h in Headers */,
 				63A5930B2043A0FF00FF352E /* ndi_runtime.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -259,6 +274,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				63FE3733195078FA00B07A04 /* commonsyms.c in Sources */,
+				639910C3247AF2170054944F /* yxml.c in Sources */,
 				63A59305204068C900FF352E /* max.jit.ndi.send~.c in Sources */,
 				63A59303204068C300FF352E /* jit.ndi.send.c in Sources */,
 			);

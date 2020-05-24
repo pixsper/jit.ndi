@@ -114,7 +114,7 @@ bool load_ndi_runtime(NDIlib_v4** ndiLib, void** ndiLibHandle)
     }
     
     dlerror();
-	void* runtimeHandle = dlopen(ndiRuntimePath, RTLD_LOCAL | RTLD_LAZY);
+	runtimeHandle = dlopen(ndiRuntimePath, RTLD_LOCAL | RTLD_LAZY);
 	if (!runtimeHandle)
     {
         error("Can't find NDI runtime library - '%s'. Please download and/or reinstall NDI runtime from '%s' and restart Max", dlerror(), NDILIB_REDIST_URL);

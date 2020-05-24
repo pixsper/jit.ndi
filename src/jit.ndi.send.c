@@ -868,9 +868,6 @@ void jit_ndi_send_receiveclock(t_jit_ndi_send* x)
 		char attrValue[YXML_MAX_ATTR_VALUE_LENGTH];
 		char* p = attrValue;
 
-		post(metadata.p_data);
-		post("\n");
-		
 		char* doc = metadata.p_data;
 		for(; *doc; ++doc)
 		{
@@ -897,7 +894,7 @@ void jit_ndi_send_receiveclock(t_jit_ndi_send* x)
 					break;
 				
 				case YXML_ATTRVAL:
-					l = min(YXML_MAX_ATTR_VALUE_LENGTH - (p - attrValue), sizeof(y->data));
+					l = MIN(YXML_MAX_ATTR_VALUE_LENGTH - (p - attrValue), sizeof(y->data));
 					for(int i = 0; i < l; ++i, ++p)
 					{
 						*p = *(y->data + i);
