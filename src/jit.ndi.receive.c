@@ -24,7 +24,7 @@
 #define DEFAULT_INTERNAL_MATRIX_WIDTH 1920
 #define DEFAULT_INTERNAL_MATRIX_HEIGHT 1080
 
-NDIlib_v4* ndiLib;
+extern NDIlib_v4* ndiLib;
 
 typedef enum _ColorMode
 {
@@ -73,6 +73,9 @@ typedef struct _jit_ndi_receive
 	color_mode attrColorMode;
 	t_bool attrLowBandwidth;
 
+	t_bool attrPtzCapable;
+	t_bool attrKvmCapable;
+
 	float attrPtzZoom;
 	float attrPtzZoomSpeed;
 	float attrPtzPanTilt[2];
@@ -95,6 +98,20 @@ typedef struct _jit_ndi_receive
 
 t_symbol* _sym_argb;
 t_symbol* _sym_uyvy;
+t_symbol* _sym_ptz_capable;
+t_symbol* _sym_ptz_zoom;
+t_symbol* _sym_ptz_zoom_speed;
+t_symbol* _sym_ptz_pantilt;
+t_symbol* _sym_ptz_pantilt_speed;
+t_symbol* _sym_ptz_flip;
+t_symbol* _sym_ptz_autofocus;
+t_symbol* _sym_ptz_focus;
+t_symbol* _sym_ptz_focus_speed;
+t_symbol* _sym_ptz_whitebalance_mode;
+t_symbol* _sym_ptz_whitebalance_red;
+t_symbol* _sym_ptz_whitebalance_blue;
+t_symbol* _sym_ptz_autoexposure;
+t_symbol* _sym_ptz_exposure;
 
 t_jit_err jit_ndi_receive_init();
 t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName, t_atom_long numAudioChannels);
@@ -115,6 +132,11 @@ void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampl
 
 void jit_ndi_receive_update_tally(t_jit_ndi_receive* x);
 
+void jit_ndi_receive_ptz_store_preset(t_jit_ndi_receive* x, t_atom_long index);
+void jit_ndi_receive_ptz_recall_preset(t_jit_ndi_receive* x, t_symbol* s, long argc, t_atom* argv);
+
+void jit_ndi_receive_ptz_update_enabled_attr(t_jit_ndi_receive* x);
+
 t_symbol* jit_ndi_receive_getsourcelist(t_jit_ndi_receive* x);
 t_symbol* jit_ndi_receive_getsource(t_jit_ndi_receive* x);
 void jit_ndi_receive_setsource(t_jit_ndi_receive* x, t_symbol* s);
@@ -125,6 +147,21 @@ t_jit_err jit_ndi_receive_setattr_colormode(t_jit_ndi_receive* x, void* attr, lo
 t_jit_err jit_ndi_receive_setattr_lowbandwidth(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_receive_setattr_tally_onprogram(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_receive_setattr_tally_onpreview(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_receive_setattr_ptz(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_receive_setattr_dummy(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv);
+
+t_jit_err jit_ndi_receive_setattr_ptz_zoom(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_zoom_speed(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_pantilt(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_pantilt_speed(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_autofocus(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_focus(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_focus_speed(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_whitebalance_mode(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_whitebalance_red(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_whitebalance_blue(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_autoexposure(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
+t_jit_err jit_ndi_receive_setattr_ptz_exposure(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av);
 
 t_symbol* pack_source_id(t_symbol* hostName, t_symbol* sourceName);
 bool unpack_source_id(t_symbol** hostName, t_symbol** sourceName, const char* const sourceId);
@@ -137,6 +174,21 @@ t_jit_err jit_ndi_receive_init()
 {
 	_sym_argb = gensym("argb");
 	_sym_uyvy = gensym("uyvy");
+
+	_sym_ptz_capable = gensym("ptz_capable");
+	_sym_ptz_zoom = gensym("ptz_zoom");
+	_sym_ptz_zoom_speed = gensym("ptz_zoom_speed");
+	_sym_ptz_pantilt = gensym("ptz_pantilt");
+	_sym_ptz_pantilt_speed = gensym("ptz_pantilt_speed");
+	_sym_ptz_flip = gensym("ptz_flip");
+	_sym_ptz_autofocus = gensym("ptz_autofocus");
+	_sym_ptz_focus = gensym("ptz_focus");
+	_sym_ptz_focus_speed = gensym("ptz_focus_speed");
+	_sym_ptz_whitebalance_mode = gensym("ptz_whitebalance_mode");
+	_sym_ptz_whitebalance_red = gensym("ptz_whitebalance_red");
+	_sym_ptz_whitebalance_blue = gensym("ptz_whitebalance_blue");
+	_sym_ptz_autoexposure = gensym("ptz_autoexposure");
+	_sym_ptz_exposure = gensym("ptz_exposure");
 
 	_jit_ndi_receive_class = jit_class_new("jit_ndi_receive",
 	                                    (method)jit_ndi_receive_new, (method)jit_ndi_receive_free,
@@ -151,6 +203,9 @@ t_jit_err jit_ndi_receive_init()
 
 	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_startaudio, "audio_start", A_CANT, 0L);
 	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_get_samples, "get_samples", A_CANT, 0L);
+
+	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_ptz_store_preset, "ptz_store_preset", A_LONG, 0L);
+	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_ptz_recall_preset, "ptz_recall_preset", A_GIMME, 0L);
 
 	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_getsourcelist, "getsourcelist", A_CANT, 0L);
 	jit_class_addmethod(_jit_ndi_receive_class, (method)jit_ndi_receive_getsource, "getsource", A_CANT, 0L);
@@ -203,111 +258,146 @@ t_jit_err jit_ndi_receive_init()
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"Tally\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
 
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "tally_onpreview", _jit_sym_char, attrflags, 
+		(method)0L, (method)jit_ndi_receive_setattr_tally_onpreview, calcoffset(t_jit_ndi_receive, attrTallyOnPreview));
+	jit_class_addattr(_jit_ndi_receive_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"On Preview\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"Tally\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_capable", _jit_sym_char, attrflags, 
+		(method)0L, (method)jit_ndi_receive_setattr_dummy, calcoffset(t_jit_ndi_receive, attrPtzCapable));
+	jit_class_addattr(_jit_ndi_receive_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"PTZ Capable\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"Source Capabilities\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "1");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "kvm_capable", _jit_sym_char, attrflags, 
+		(method)0L, (method)jit_ndi_receive_setattr_dummy, calcoffset(t_jit_ndi_receive, attrKvmCapable));
+	jit_class_addattr(_jit_ndi_receive_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"KVM Capable\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"Source Capabilities\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_zoom", _jit_sym_float32, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzZoom));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_zoom, calcoffset(t_jit_ndi_receive, attrPtzZoom));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, true, true);
+	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Zoom\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "1");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_zoom_speed", _jit_sym_float32, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzZoomSpeed));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_zoom_speed, calcoffset(t_jit_ndi_receive, attrPtzZoomSpeed));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, true, true);
+	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Zoom Speed\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset_array, "ptz_pantilt", _jit_sym_float32, 2, attrflags, 
-		(method)0L, (method)0L, NULL, calcoffset(t_jit_ndi_receive, attrPtzPanTilt));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_pantilt, NULL, calcoffset(t_jit_ndi_receive, attrPtzPanTilt));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, true, true);
+	attr_addfilter_clip(attr, -1, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Pan/Tilt\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "3");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset_array, "ptz_pantilt_speed", _jit_sym_float32, 2, attrflags, 
-		(method)0L, (method)0L, NULL, calcoffset(t_jit_ndi_receive, attrPtzPanTiltSpeed));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_pantilt_speed, NULL, calcoffset(t_jit_ndi_receive, attrPtzPanTiltSpeed));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, true, true);
+	attr_addfilter_clip(attr, -1, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Pan/Tilt Speed\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "4");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
-	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_flip", _jit_sym_char, attrflags, 
+	// TODO: Not exposed by NDILib API yet
+	/*attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_flip", _jit_sym_char, attrflags, 
 		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzFlip));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Flip\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "5");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");*/
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_autofocus", _jit_sym_char, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzAutoFocus));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_autofocus, calcoffset(t_jit_ndi_receive, attrPtzAutoFocus));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Auto-focus\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "6");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_focus", _jit_sym_float32, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzFocus));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_focus, calcoffset(t_jit_ndi_receive, attrPtzFocus));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, true, true);
+	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Focus\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "7");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_focus_speed", _jit_sym_float32, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzFocusSpeed));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_focus_speed, calcoffset(t_jit_ndi_receive, attrPtzFocusSpeed));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, true, true);
+	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Focus Speed\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "8");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance_mode", _jit_sym_char, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzWhiteBalanceMode));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_whitebalance_mode, calcoffset(t_jit_ndi_receive, attrPtzWhiteBalanceMode));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"White Balance Mode\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "enumindex");
 	object_addattr_parse(attr, "enumvals", _jit_sym_symbol, 0, "\"Auto\" \"Indoor\" \"Outdoor\" \"One-push\" \"Manual\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "9");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance_red", _jit_sym_float32, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzWhiteBalanceRed));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_whitebalance_red, calcoffset(t_jit_ndi_receive, attrPtzWhiteBalanceRed));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, true, true);
+	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"White Balance Red\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "10");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance_blue", _jit_sym_float32, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzWhiteBalanceBlue));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_whitebalance_blue, calcoffset(t_jit_ndi_receive, attrPtzWhiteBalanceBlue));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, true, true);
+	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"White Balance Blue\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "11");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_autoexposure", _jit_sym_char, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzAutoExposure));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_autoexposure, calcoffset(t_jit_ndi_receive, attrPtzAutoExposure));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Auto-exposure\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "12");
+	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_exposure", _jit_sym_float32, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzExposure));
+		(method)0L, (method)jit_ndi_receive_setattr_ptz_exposure, calcoffset(t_jit_ndi_receive, attrPtzExposure));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, true, true);
+	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Exposure\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "13");
@@ -340,36 +430,37 @@ t_jit_ndi_receive* jit_ndi_receive_new(t_symbol* hostName, t_symbol* sourceName,
 	x->ndiFrameSync = NULL;
 
 	x->receiveThread = NULL;
-	x->isCancelThread = false;
+	x->isCancelThread = FALSE;
 	
 	x->samplerate = 0;
 
 	x->attrHostName = hostName;
 	x->attrSourceName = sourceName;
 	x->attrNumAudioChannels = numAudioChannels;
-	x->attrTallyOnProgram = false;
-	x->attrTallyOnPreview = false;
+	x->attrTallyOnProgram = FALSE;
+	x->attrTallyOnPreview = FALSE;
 
-	x->attrLowBandwidth = false;
+	x->attrLowBandwidth = FALSE;
 
-	x->attrPtzZoom = 0.5;
-	x->attrPtzZoomSpeed = 1;
-	x->attrPtzPanTilt[0] = 0.5;
-	x->attrPtzPanTilt[1] = 0.5;
-	x->attrPtzPanTiltSpeed[0] = 1;
-	x->attrPtzPanTiltSpeed[1] = 1;
-	x->attrPtzAutoFocus = true;
-	x->attrPtzFocus = 0.5;
+	x->attrPtzZoom = 0.5f;
+	x->attrPtzZoomSpeed = 0;
+	x->attrPtzPanTilt[0] = 0;
+	x->attrPtzPanTilt[1] = 0;
+	x->attrPtzPanTiltSpeed[0] = 0;
+	x->attrPtzPanTiltSpeed[1] = 0;
+	x->attrPtzFlip = FALSE;
+	x->attrPtzAutoFocus = TRUE;
+	x->attrPtzFocus = 0.5f;
 	x->attrPtzWhiteBalanceMode = WHITEBALANCEMODE_AUTO;
-	x->attrPtzWhiteBalanceRed = 0.5;
-	x->attrPtzWhiteBalanceBlue = 0.5;
-	x->attrPtzAutoExposure = true;
-	x->attrPtzExposure = 0.5;
+	x->attrPtzWhiteBalanceRed = 0.5f;
+	x->attrPtzWhiteBalanceBlue = 0.5f;
+	x->attrPtzAutoExposure = TRUE;
+	x->attrPtzExposure = 0.5f;
 
 	x->activeSourceId = pack_source_id(x->attrHostName, x->attrSourceName);
 
 	NDIlib_find_create_t finderCreateDesc = { 0 };
-	finderCreateDesc.show_local_sources = true;
+	finderCreateDesc.show_local_sources = TRUE;
 
 	x->ndiFinder = ndiLib->find_create_v2(&finderCreateDesc);
 
@@ -456,7 +547,7 @@ void jit_ndi_receive_create_receiver(t_jit_ndi_receive* x)
 
 	// Seems like we should be using NDIlib_recv_color_format_RGBX_RGBA instead below, but causes internal NDI SDK crash
 	receiverCreateDesc.color_format = x->attrColorMode == COLORMODE_UYVY ? NDIlib_recv_color_format_UYVY_BGRA : NDIlib_recv_color_format_BGRX_BGRA;
-	receiverCreateDesc.allow_video_fields = false;
+	receiverCreateDesc.allow_video_fields = FALSE;
 	receiverCreateDesc.bandwidth = x->attrLowBandwidth ? NDIlib_recv_bandwidth_lowest : NDIlib_recv_bandwidth_highest;
 
 	x->ndiReceiver = ndiLib->recv_create_v3(&receiverCreateDesc);
@@ -476,12 +567,12 @@ void jit_ndi_receive_free_receiver(t_jit_ndi_receive* x)
 	if (!x->ndiReceiver)
 		return;
 
-	x->isCancelThread = true;
+	x->isCancelThread = TRUE;
 	unsigned retVal;
 	systhread_join(x->receiveThread, &retVal);
 
 	x->receiveThread = NULL;
-	x->isCancelThread = false;
+	x->isCancelThread = FALSE;
 
 	ndiLib->framesync_destroy(x->ndiFrameSync);
     x->ndiFrameSync = NULL;
@@ -509,6 +600,14 @@ void jit_ndi_receive_threadproc(t_jit_ndi_receive* x)
 				break;
 
 			case NDIlib_frame_type_status_change:
+			{
+				const t_bool ptzCapable = ndiLib->recv_ptz_is_supported(x->ndiReceiver);
+				if (ptzCapable != x->attrPtzCapable)
+				{
+					x->attrPtzCapable = ptzCapable;
+					jit_attr_setlong(x, _sym_ptz_capable, x->attrPtzCapable);
+				}
+			}
 				break;
 		}
 	}
@@ -629,6 +728,43 @@ void jit_ndi_receive_update_tally(t_jit_ndi_receive* x)
 	tallyState.on_preview = x->attrTallyOnPreview;
 	ndiLib->recv_set_tally(x->ndiReceiver, &tallyState);
 }
+
+
+void jit_ndi_receive_ptz_store_preset(t_jit_ndi_receive* x, t_atom_long index)
+{
+	if (index < 0 || index > 99)
+		object_error((t_object*)x, "PTZ preset index must be in range 0-99");
+
+	if (!x->ndiReceiver || !x->attrPtzCapable)
+		return;
+	
+	ndiLib->recv_ptz_store_preset(x->ndiReceiver, index);
+}
+
+void jit_ndi_receive_ptz_recall_preset(t_jit_ndi_receive* x, t_symbol* s, long argc, t_atom* argv)
+{
+	if (argc == 0 || argc > 2)
+	{
+		object_error((t_object*)x, "Invalid arguments for '%s'", s);
+		return;
+	}
+	
+	const t_atom_long index = atom_getlong(argv);
+
+	double speed = 1.;
+	if (argc == 2)
+		speed = atom_getfloat(argv + 1);
+
+	if (index < 0 || index > 99)
+		object_error((t_object*)x, "PTZ preset index must be in range 0 to 99");
+
+	if (speed < 0. || speed > 1.)
+		object_error((t_object*)x, "PTZ preset recall speed must be in range 0. to 1.");
+
+	if (x->ndiReceiver && x->attrPtzCapable)
+		ndiLib->recv_ptz_recall_preset(x->ndiReceiver, index, (float)speed);
+}
+
 
 t_symbol* jit_ndi_receive_getsourcelist(t_jit_ndi_receive* x)
 {
@@ -790,6 +926,223 @@ t_jit_err jit_ndi_receive_setattr_tally_onpreview(t_jit_ndi_receive* x, void* at
 	{
 		x->attrTallyOnPreview = v;
 		jit_ndi_receive_update_tally(x);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_dummy(t_jit_ndi_receive* x, void* attr, long argc, t_atom* argv)
+{
+	// Does nothing, to provide a setter for read only attributes. This is preferable rather than using 
+	// the OPAQUE flags as it allows the attribute to have a style and appear in attrui.
+	return JIT_ERR_NONE;
+}
+
+
+t_jit_err jit_ndi_receive_setattr_ptz_zoom(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzZoom = (float)jit_atom_getfloat(av);
+	if (x->ndiReceiver && x->attrPtzCapable)
+		ndiLib->recv_ptz_zoom(x->ndiReceiver, x->attrPtzZoom);
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_zoom_speed(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzZoomSpeed = (float)jit_atom_getfloat(av);
+	if (x->ndiReceiver && x->attrPtzCapable)
+		ndiLib->recv_ptz_zoom_speed(x->ndiReceiver, x->attrPtzZoomSpeed);
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_pantilt(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzPanTilt[0] = (float)jit_atom_getfloat(av);
+
+	if (ac > 1)
+		x->attrPtzPanTilt[1] = (float)jit_atom_getfloat(av + 1);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+		ndiLib->recv_ptz_pan_tilt(x->ndiReceiver, x->attrPtzPanTilt[0], x->attrPtzPanTilt[1]);
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_pantilt_speed(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzPanTiltSpeed[0] = (float)jit_atom_getfloat(av);
+
+	if (ac > 1)
+		x->attrPtzPanTiltSpeed[1] = (float)jit_atom_getfloat(av + 1);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+		ndiLib->recv_ptz_pan_tilt_speed(x->ndiReceiver, x->attrPtzPanTiltSpeed[0], x->attrPtzPanTiltSpeed[1]);
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_autofocus(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzAutoFocus = jit_atom_getlong(av);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+	{
+		if (x->attrPtzAutoFocus)
+			ndiLib->recv_ptz_auto_focus(x->ndiReceiver);
+		else
+			ndiLib->recv_ptz_focus(x->ndiReceiver, x->attrPtzFocus);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_focus(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzFocus = (float)jit_atom_getfloat(av);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+	{
+		if (!x->attrPtzAutoFocus)
+			ndiLib->recv_ptz_focus(x->ndiReceiver, x->attrPtzFocus);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_focus_speed(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzFocusSpeed = (float)jit_atom_getfloat(av);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+	{
+		if (!x->attrPtzAutoFocus)
+			ndiLib->recv_ptz_focus_speed(x->ndiReceiver, x->attrPtzFocusSpeed);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_whitebalance_mode(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzWhiteBalanceMode = (WhiteBalanceMode)jit_atom_getlong(av);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+	{
+		switch(x->attrPtzWhiteBalanceMode)
+		{
+			default:
+			case WHITEBALANCEMODE_AUTO:
+				ndiLib->recv_ptz_white_balance_auto(x->ndiReceiver);
+				break;
+			
+			case WHITEBALANCEMODE_INDOOR:
+				ndiLib->recv_ptz_white_balance_indoor(x->ndiReceiver);
+				break;
+			
+			case WHITEBALANCEMODE_OUTDOOR:
+				ndiLib->recv_ptz_white_balance_outdoor(x->ndiReceiver);
+				break;
+			
+			case WHITEBALANCEMODE_ONE_PUSH:
+				ndiLib->recv_ptz_white_balance_oneshot(x->ndiReceiver);
+				break;
+			
+			case WHITEBALANCEMODE_MANUAL:
+				ndiLib->recv_ptz_white_balance_manual(x->ndiReceiver, x->attrPtzWhiteBalanceRed, x->attrPtzWhiteBalanceBlue);
+				break;
+		}
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_whitebalance_red(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzWhiteBalanceRed = (float)jit_atom_getfloat(av);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+	{
+		if (x->attrPtzWhiteBalanceMode == WHITEBALANCEMODE_MANUAL)
+			ndiLib->recv_ptz_white_balance_manual(x->ndiReceiver, x->attrPtzWhiteBalanceRed, x->attrPtzWhiteBalanceBlue);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_whitebalance_blue(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzWhiteBalanceBlue = (float)jit_atom_getfloat(av);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+	{
+		if (x->attrPtzWhiteBalanceMode == WHITEBALANCEMODE_MANUAL)
+			ndiLib->recv_ptz_white_balance_manual(x->ndiReceiver, x->attrPtzWhiteBalanceRed, x->attrPtzWhiteBalanceBlue);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_autoexposure(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzAutoExposure = jit_atom_getlong(av);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+	{
+		if (x->attrPtzAutoExposure)
+			ndiLib->recv_ptz_exposure_auto(x->ndiReceiver);
+		else
+			ndiLib->recv_ptz_exposure_manual(x->ndiReceiver, x->attrPtzExposure);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_receive_setattr_ptz_exposure(t_jit_ndi_receive *x, void *attr, long ac, t_atom *av)
+{
+   if (!ac || !av)
+	   return JIT_ERR_NONE;
+
+	x->attrPtzExposure = (float)jit_atom_getfloat(av);
+	
+	if (x->ndiReceiver && x->attrPtzCapable)
+	{
+		if (!x->attrPtzAutoExposure)
+			ndiLib->recv_ptz_focus(x->ndiReceiver, x->attrPtzExposure);
 	}
 
 	return JIT_ERR_NONE;

@@ -1,4 +1,3 @@
-//
 // This file is part of jit.ndi https://github.com/impsnldavid/jit.ndi
 // Copyright (c) 2018 David Butler / The Impersonal Stereo
 // 
@@ -26,7 +25,10 @@
 #include "ndi_runtime.h"
 #include "build/version.h"
 
-extern NDIlib_v4* ndiLib;
+
+
+void* ndiLibHandle;
+NDIlib_v4* ndiLib;
 
 typedef struct _max_jit_ndi_send
 {
@@ -89,7 +91,7 @@ t_class* max_jit_ndi_send_class;
 
 void ext_main(void* r)
 {
-	if (!load_ndi_runtime(&ndiLib))
+	if (!load_ndi_runtime(&ndiLib, &ndiLibHandle))
 		return;
 
 	common_symbols_init();

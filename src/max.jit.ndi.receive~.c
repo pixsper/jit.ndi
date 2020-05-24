@@ -32,7 +32,18 @@
 #include <sys/param.h>
 #endif
 
-extern NDIlib_v4* ndiLib;
+void* ndiLibHandle;
+NDIlib_v4* ndiLib;
+
+typedef enum _WhiteBalanceMode
+{
+	WHITEBALANCEMODE_AUTO,
+	WHITEBALANCEMODE_INDOOR,
+	WHITEBALANCEMODE_OUTDOOR,
+	WHITEBALANCEMODE_ONE_PUSH,
+	WHITEBALANCEMODE_MANUAL
+
+} WhiteBalanceMode;
 
 typedef struct _max_jit_ndi_receive
 {
@@ -55,16 +66,23 @@ t_symbol* _sym_setsource;
 t_symbol* _sym_sourcelistmenu;
 t_symbol* _sym_audio_start;
 t_symbol* _sym_get_samples;
+t_symbol* _sym_tally_onprogram;
+t_symbol* _sym_tally_onpreview;
+t_symbol* _sym_runtimeurl;
+t_symbol* _sym_ptz_capable;
+t_symbol* _sym_ptz_zoom;
+t_symbol* _sym_ptz_zoom_speed;
+t_symbol* _sym_ptz_pantilt;
+t_symbol* _sym_ptz_pantilt_speed;
+t_symbol* _sym_ptz_flip;
 t_symbol* _sym_ptz_autofocus;
 t_symbol* _sym_ptz_focus;
-t_symbol* _sym_ptz_whitebalancemode;
+t_symbol* _sym_ptz_focus_speed;
+t_symbol* _sym_ptz_whitebalance_mode;
 t_symbol* _sym_ptz_whitebalance_red;
 t_symbol* _sym_ptz_whitebalance_blue;
 t_symbol* _sym_ptz_autoexposure;
 t_symbol* _sym_ptz_exposure;
-t_symbol* _sym_tally_onprogram;
-t_symbol* _sym_tally_onpreview;
-t_symbol* _sym_runtimeurl;
 
 
 t_jit_err jit_ndi_receive_init();
@@ -75,6 +93,8 @@ void max_jit_ndi_receive_assist(t_max_jit_ndi_receive* x, void* b, long io, long
 
 void max_jit_ndi_receive_notify(t_max_jit_ndi_receive* x, t_symbol* s, t_symbol* msg, void* ob, void* data);
 void max_jit_ndi_outputmatrix(t_max_jit_ndi_receive *x);
+
+void max_jit_ndi_receive_ptz_update_enabled_attr(t_max_jit_ndi_receive* x);
 
 void max_jit_ndi_receive_getsourcelist(t_max_jit_ndi_receive* x);
 void max_jit_ndi_receive_getsourcelistmenu(t_max_jit_ndi_receive* x);
@@ -97,7 +117,7 @@ t_class* max_jit_ndi_receive_class;
 
 void ext_main(void* r)
 {
-	if (!load_ndi_runtime(&ndiLib))
+	if (!load_ndi_runtime(&ndiLib, &ndiLibHandle))
 		return;
 
 	common_symbols_init();
@@ -109,16 +129,23 @@ void ext_main(void* r)
 	_sym_sourcelistmenu = gensym("sourcelistmenu");
 	_sym_audio_start = gensym("audio_start");
 	_sym_get_samples = gensym("get_samples");
+	_sym_tally_onprogram = gensym("tally_onprogram");
+	_sym_tally_onpreview = gensym("tally_onpreview");
+	_sym_runtimeurl = gensym("runtimeurl");
+	_sym_ptz_capable = gensym("ptz_capable");
+	_sym_ptz_zoom = gensym("ptz_zoom");
+	_sym_ptz_zoom_speed = gensym("ptz_zoom_speed");
+	_sym_ptz_pantilt = gensym("ptz_pantilt");
+	_sym_ptz_pantilt_speed = gensym("ptz_pantilt_speed");
+	_sym_ptz_flip = gensym("ptz_flip");
 	_sym_ptz_autofocus = gensym("ptz_autofocus");
 	_sym_ptz_focus = gensym("ptz_focus");
-	_sym_ptz_whitebalancemode = gensym("ptz_whitebalancemode");
+	_sym_ptz_focus_speed = gensym("ptz_focus_speed");
+	_sym_ptz_whitebalance_mode = gensym("ptz_whitebalance_mode");
 	_sym_ptz_whitebalance_red = gensym("ptz_whitebalance_red");
 	_sym_ptz_whitebalance_blue = gensym("ptz_whitebalance_blue");
 	_sym_ptz_autoexposure = gensym("ptz_autoexposure");
 	_sym_ptz_exposure = gensym("ptz_exposure");
-	_sym_tally_onprogram = gensym("tally_onprogram");
-	_sym_tally_onpreview = gensym("tally_onpreview");
-	_sym_runtimeurl = gensym("runtimeurl");
 
 	jit_ndi_receive_init();
 
@@ -303,18 +330,10 @@ void max_jit_ndi_receive_notify(t_max_jit_ndi_receive* x, t_symbol* s, t_symbol*
 	{
 		t_symbol* attrname = (t_symbol*)jit_object_method((t_object *)data, _sym_getname); 
 
-		if (attrname == _sym_ptz_autofocus)
+		if (attrname == _sym_ptz_capable 
+			|| attrname == _sym_ptz_autofocus || attrname == _sym_ptz_whitebalance_mode || attrname == _sym_ptz_autoexposure)
 		{
-			object_attr_setdisabled((t_object*)x, _sym_ptz_focus, jit_attr_getlong(x->jitObject, _sym_ptz_autofocus));
-		}
-		else if (attrname == _sym_ptz_whitebalancemode)
-		{
-			object_attr_setdisabled((t_object*)x, _sym_ptz_whitebalance_red, jit_attr_getlong(x->jitObject, _sym_ptz_whitebalancemode) != 3);
-			object_attr_setdisabled((t_object*)x, _sym_ptz_whitebalance_blue, jit_attr_getlong(x->jitObject, _sym_ptz_whitebalancemode) != 3);
-		}
-		else if (attrname == _sym_ptz_autoexposure)
-		{
-			object_attr_setdisabled((t_object*)x, _sym_ptz_exposure, jit_attr_getlong(x->jitObject, _sym_ptz_autoexposure));
+			max_jit_ndi_receive_ptz_update_enabled_attr(x);
 		}
 	} 
 	else
@@ -328,6 +347,53 @@ void max_jit_ndi_outputmatrix(t_max_jit_ndi_receive *x)
 	void* mop = max_jit_obex_adornment_get(x, _jit_sym_jit_mop);
 	jit_object_method(x->jitObject, _jit_sym_matrix_calc, jit_object_method(mop, _jit_sym_getinputlist), jit_object_method(mop, _jit_sym_getoutputlist));
 	max_jit_mop_outputmatrix(x);
+}
+
+
+void max_jit_ndi_receive_ptz_update_enabled_attr(t_max_jit_ndi_receive* x)
+{
+	const t_bool isPtzCapable = jit_attr_getlong(x->jitObject, _sym_ptz_capable);
+	
+	if (isPtzCapable)
+	{
+		const t_bool isAutofocus = jit_attr_getlong(x->jitObject, _sym_ptz_autofocus);
+		const t_atom_long whiteBalanceMode = jit_attr_getlong(x->jitObject, _sym_ptz_whitebalance_mode);
+		const t_bool isAutoExposure = jit_attr_getlong(x->jitObject, _sym_ptz_autoexposure);
+		
+		object_attr_setdisabled((t_object*)x, _sym_ptz_zoom, 0);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_zoom_speed, 0);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_zoom_speed, 0);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_pantilt, 0);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_pantilt_speed, 0);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_flip, 0);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_autofocus, 0);
+
+		object_attr_setdisabled((t_object*)x, _sym_ptz_focus, isAutofocus);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_focus_speed, isAutofocus);
+		
+		object_attr_setdisabled((t_object*)x, _sym_ptz_whitebalance_mode, 0);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_whitebalance_red, whiteBalanceMode != WHITEBALANCEMODE_MANUAL);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_whitebalance_blue, whiteBalanceMode != WHITEBALANCEMODE_MANUAL);
+		
+		object_attr_setdisabled((t_object*)x, _sym_ptz_autoexposure, 0);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_exposure, isAutoExposure);
+	}
+	else
+	{
+		object_attr_setdisabled((t_object*)x, _sym_ptz_zoom, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_zoom_speed, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_pantilt, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_pantilt_speed, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_flip, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_autofocus, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_focus, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_focus_speed, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_whitebalance_mode, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_whitebalance_red, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_whitebalance_blue, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_autoexposure, 1);
+		object_attr_setdisabled((t_object*)x, _sym_ptz_exposure, 1);
+	}
 }
 
 
