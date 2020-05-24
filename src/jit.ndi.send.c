@@ -15,12 +15,24 @@
 // License along with this program. 
 // If not, see <http://www.gnu.org/licenses/>.
 
+#include <float.h>
+
+#if WIN_VERSION
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#else
+#include <strings.h>
+#endif
+
 #include <jit.common.h>
 
 #include <Processing.NDI.Lib.h>
+#include <yxml.h>
 
 #define NUM_FRAMEBUFFERS 2
-#define TALLY_UPDATE_INTERVAL 100
+#define METADATA_UPDATE_INTERVAL 16
+#define YXML_BUFSIZE 4096
+#define YXML_MAX_ATTR_VALUE_LENGTH 32
 
 NDIlib_v4* ndiLib;
 
@@ -42,6 +54,33 @@ typedef enum _Framerate
 	FRAMERATE_59_94,
 	FRAMERATE_60
 } Framerate;
+
+typedef enum _PtzXmlElement
+{
+	PTZ_NONE,
+	PTZ_ZOOM,
+	PTZ_ZOOM_SPEED,
+	PTZ_PAN_TILT_SPEED,
+	PTZ_PAN_TILT,
+	PTZ_STORE_PRESET,
+	PTZ_RECALL_PRESET,
+	PTZ_FLIP,
+	PTZ_FOCUS,
+	PTZ_FOCUS_SPEED,
+	PTZ_WHITE_BALANCE,
+	PTZ_EXPOSURE
+	
+} PtzXmlElement;
+
+typedef enum _WhiteBalanceMode
+{
+	WHITEBALANCEMODE_AUTO,
+	WHITEBALANCEMODE_INDOOR,
+	WHITEBALANCEMODE_OUTDOOR,
+	WHITEBALANCEMODE_ONE_PUSH,
+	WHITEBALANCEMODE_MANUAL
+
+} WhiteBalanceMode;
 
 typedef struct _jit_ndi_send
 {
@@ -66,6 +105,32 @@ typedef struct _jit_ndi_send
 	t_bool attrTallyOnProgram;
 	t_bool attrTallyOnPreview;
 	t_bool attrPtzEnable;
+	t_bool attrKvmEnable;
+
+	float ptzZoomSpeed;
+	float ptzPanTiltSpeed[2];
+	float ptzFocusSpeed;
+
+	int ptzPresetStore;
+	int ptzPresetRecall;
+	float ptzPresetRecallSpeed;
+	
+	float attrPtzZoomSensitivity;
+	float attrPtzPanTiltSensitivity[2];
+	float attrPtzFocusSensitivity;
+
+	float attrPtzZoom;
+	float attrPtzPanTilt[2];
+	t_bool attrPtzFlip;
+	t_bool attrPtzAutoFocus;
+	float attrPtzFocus;
+
+	WhiteBalanceMode attrPtzWhiteBalanceMode;
+	float attrPtzWhiteBalanceRed;
+	float attrPtzWhiteBalanceBlue;
+
+	t_bool attrPtzAutoExposure;
+	float attrPtzExposure;
 
 	void* receiveClock;
 } t_jit_ndi_send;
@@ -74,7 +139,23 @@ t_symbol* _sym_argb;
 t_symbol* _sym_uyvy;
 t_symbol* _sym_tally_onprogram;
 t_symbol* _sym_tally_onpreview;
-
+t_symbol* _sym_ptz_zoom_sensitivity;
+t_symbol* _sym_ptz_pantilt_sensitivity;
+t_symbol* _sym_ptz_focus_sensitivity;
+t_symbol* _sym_ptz_zoom;
+t_symbol* _sym_ptz_pantilt;
+t_symbol* _sym_ptz_flip;
+t_symbol* _sym_ptz_autofocus;
+t_symbol* _sym_ptz_focus;
+t_symbol* _sym_ptz_whitebalance_mode;
+t_symbol* _sym_ptz_whitebalance_red;
+t_symbol* _sym_ptz_whitebalance_blue;
+t_symbol* _sym_ptz_autoexposure;
+t_symbol* _sym_ptz_exposure;
+t_symbol* _sym_preset_store;
+t_symbol* _sym_preset_recall;
+t_symbol* _sym_get_preset_store;
+t_symbol* _sym_get_preset_recall;
 
 t_jit_err jit_ndi_send_init();
 t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName);
@@ -96,16 +177,27 @@ void jit_ndi_send_free_audio_frame_struct(t_jit_ndi_send* x);
 
 void jit_ndi_send_add_samples(t_jit_ndi_send* x, double** ins, long sampleFrames, long startframe);
 
-void jit_ndi_send_receivedata(t_jit_ndi_send* x);
+void jit_ndi_send_receiveclock(t_jit_ndi_send* x);
+void jit_ndi_send_set_ptz_attribute(t_jit_ndi_send* x, PtzXmlElement element, const char* attr_name, const char* attr_value);
 void jit_ndi_send_updatetally(t_jit_ndi_send* x);
 void jit_ndi_send_setcapabilities(t_jit_ndi_send* x);
+void jit_ndi_send_update_ptz(t_jit_ndi_send* x);
+void jit_ndi_send_ptz_panic(t_jit_ndi_send* x);
+
+t_jit_err  jit_ndi_send_get_preset_store(t_jit_ndi_send* x, t_symbol *s, long ac, t_atom *av, t_atom *rv);
+t_jit_err  jit_ndi_send_get_preset_recall(t_jit_ndi_send* x, t_symbol *s, long ac, t_atom *av, t_atom *rv);
 
 t_jit_err jit_ndi_send_setattr_colormode(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_send_setattr_framerate(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_send_setattr_ptz_enable(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
+t_jit_err jit_ndi_send_setattr_kvm_enable(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
 t_jit_err jit_ndi_send_setattr_dummy(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv);
 
 t_atom_float framerate_to_value(Framerate fr);
+PtzXmlElement string_to_ptz_xml_element(const char* c);
+t_bool try_parse_int(const char* c, int* value);
+t_bool try_parse_float(const char* c, float* value);
+t_bool try_parse_bool(const char* c, t_bool* value);
 
 void* _jit_ndi_send_class;
 
@@ -117,6 +209,24 @@ t_jit_err jit_ndi_send_init()
 	_sym_uyvy = gensym("uyvy");
 	_sym_tally_onprogram = gensym("tally_onprogram");
 	_sym_tally_onpreview = gensym("tally_onpreview");
+	_sym_ptz_zoom_sensitivity = gensym("ptz_zoom_sensitivity");
+	_sym_ptz_pantilt_sensitivity = gensym("ptz_pantilt_sensitivity");
+	_sym_ptz_focus_sensitivity = gensym("ptz_focus_sensitivity");
+	_sym_ptz_zoom = gensym("ptz_zoom");
+	_sym_ptz_pantilt = gensym("ptz_pantilt");
+	_sym_ptz_flip = gensym("ptz_flip");
+	_sym_ptz_autofocus = gensym("ptz_autofocus");
+	_sym_ptz_focus = gensym("ptz_focus");
+	_sym_ptz_whitebalance_mode = gensym("ptz_whitebalance_mode");
+	_sym_ptz_whitebalance_red = gensym("ptz_whitebalance_red");
+	_sym_ptz_whitebalance_blue = gensym("ptz_whitebalance_blue");
+	_sym_ptz_autoexposure = gensym("ptz_autoexposure");
+	_sym_ptz_exposure = gensym("ptz_exposure");
+	_sym_preset_store = gensym("preset_store");
+	_sym_preset_recall = gensym("preset_recall");
+	_sym_get_preset_store = gensym("get_preset_store");
+	_sym_get_preset_recall = gensym("get_preset_recall");
+	
 
 	_jit_ndi_send_class = jit_class_new("jit_ndi_send",
 	                                    (method)jit_ndi_send_new, (method)jit_ndi_send_free,
@@ -125,12 +235,17 @@ t_jit_err jit_ndi_send_init()
 	t_jit_object* mop = jit_object_new(_jit_sym_jit_mop, 1, 0);
 	jit_class_addadornment(_jit_ndi_send_class, mop);
 
+	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_send_ptz_panic, "ptz_panic", 0L);
+	
 	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_send_matrix_calc, "matrix_calc", A_CANT, 0L);
 
 	jit_class_addmethod(_jit_ndi_send_class, (method)jit_object_register, "register", A_CANT, 0L);
 
 	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_send_create_audio_frame_struct, "audio_start", A_CANT, 0L);
 	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_send_add_samples, "add_samples", A_CANT, 0L);
+
+	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_send_get_preset_store, "get_preset_store", A_GIMMEBACK, 0L);
+	jit_class_addmethod(_jit_ndi_send_class, (method)jit_ndi_send_get_preset_recall, "get_preset_recall", A_GIMMEBACK, 0L);
 
 	long attrflags = JIT_ATTR_GET_DEFER_LOW | JIT_ATTR_SET_USURP_LOW;
 
@@ -177,6 +292,14 @@ t_jit_err jit_ndi_send_init()
 	object_addattr_parse(attr, "style", _jit_sym_symbol, 0, "onoff");
 	object_addattr_parse(attr, "order", _jit_sym_long, 0, "5");
 
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "kvm_enable", _jit_sym_char, attrflags,
+	                      (method)0L, (method)jit_ndi_send_setattr_kvm_enable,
+	                      calcoffset(t_jit_ndi_send, attrKvmEnable));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	object_addattr_parse(attr, "label", _jit_sym_symbol, 0, "\"KVM Enabled\"");
+	object_addattr_parse(attr, "style", _jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "order", _jit_sym_long, 0, "6");
+
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "tally_onprogram", _jit_sym_char, attrflags,
 	                      (method)0L, (method)jit_ndi_send_setattr_dummy,
 	                      calcoffset(t_jit_ndi_send, attrTallyOnProgram));
@@ -197,6 +320,112 @@ t_jit_err jit_ndi_send_init()
 	object_addattr_parse(attr, "order", _jit_sym_long, 0, "2");
 	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_zoom_sensitivity", _jit_sym_float32, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzZoomSensitivity));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	attr_addfilter_clip(attr, 0, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Zoom Sensitivity\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Settings\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "1");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset_array, "ptz_pantilt_sensitivity", _jit_sym_float32, 2, attrflags, 
+		(method)0L, (method)0L, NULL, calcoffset(t_jit_ndi_send, attrPtzPanTiltSensitivity));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	attr_addfilter_clip(attr, 0, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Pan/Tilt Sensitivity\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Settings\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
+	
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_focus_sensitivity", _jit_sym_float32, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzFocusSensitivity));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	attr_addfilter_clip(attr, 0, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Focus Sensitivity\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Settings\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "3");
+	
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_zoom", _jit_sym_float32, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzZoom));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	attr_addfilter_clip(attr, 0, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Zoom\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "1");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset_array, "ptz_pantilt", _jit_sym_float32, 2, attrflags, 
+		(method)0L, (method)0L, NULL, calcoffset(t_jit_ndi_send, attrPtzPanTilt));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	attr_addfilter_clip(attr, -1, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Pan/Tilt\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_flip", _jit_sym_char, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzFlip));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Flip\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "3");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_autofocus", _jit_sym_char, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzAutoFocus));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Auto-focus\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "4");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_focus", _jit_sym_float32, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzFocus));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	attr_addfilter_clip(attr, 0, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Focus\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "5");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance_mode", _jit_sym_char, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzWhiteBalanceMode));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"White Balance Mode\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "enumindex");
+	object_addattr_parse(attr, "enumvals", _jit_sym_symbol, 0, "\"Auto\" \"Indoor\" \"Outdoor\" \"One-push\" \"Manual\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "6");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance_red", _jit_sym_float32, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzWhiteBalanceRed));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	attr_addfilter_clip(attr, 0, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"White Balance Red\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "7");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance_blue", _jit_sym_float32, attrflags, 
+		(method)0L, (method)jit_ndi_send_setattr_dummy, calcoffset(t_jit_ndi_send, attrPtzWhiteBalanceBlue));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	attr_addfilter_clip(attr, 0, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"White Balance Blue\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "8");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_autoexposure", _jit_sym_char, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzAutoExposure));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Auto-exposure\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "9");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_exposure", _jit_sym_float32, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_send, attrPtzExposure));
+	jit_class_addattr(_jit_ndi_send_class, attr);
+	attr_addfilter_clip(attr, 0, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Exposure\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls State\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "10");
+
+	
 	jit_class_register(_jit_ndi_send_class);
 
 	return JIT_ERR_NONE;
@@ -236,7 +465,33 @@ t_jit_ndi_send* jit_ndi_send_new(t_symbol* sourceName)
 	x->audioFramebufferPosition = 0;
 	x->sampleRate = 0;
 
-	x->receiveClock = clock_new(x, (method)jit_ndi_send_receivedata);
+	x->ptzPresetRecall = -1;
+	x->ptzPresetStore = -1;
+	x->ptzPresetRecallSpeed = 0.0f;
+	
+	x->ptzZoomSpeed = 0.0f;
+	x->ptzPanTiltSpeed[0] = 0.0f;
+	x->ptzPanTiltSpeed[1] = 0.0f;
+	x->ptzFocusSpeed = 0.0f;
+
+	x->attrPtzZoomSensitivity = 0.01f;
+	x->attrPtzPanTiltSensitivity[0] = 0.01f;
+	x->attrPtzPanTiltSensitivity[1] = 0.01f;
+	x->attrPtzFocusSensitivity = 0.01f;
+
+	x->attrPtzZoom = 0.5f;
+	x->attrPtzPanTilt[0] = 0.0f;
+	x->attrPtzPanTilt[1] = 0.0f;
+	x->attrPtzFlip = FALSE;
+	x->attrPtzAutoFocus = TRUE;
+	x->attrPtzFocus = 0.5f;
+	x->attrPtzWhiteBalanceMode = WHITEBALANCEMODE_AUTO;
+	x->attrPtzWhiteBalanceRed = 0.5f;
+	x->attrPtzWhiteBalanceBlue = 0.5f;
+	x->attrPtzAutoExposure = TRUE;
+	x->attrPtzExposure = 0.5f;
+
+	x->receiveClock = clock_new(x, (method)jit_ndi_send_receiveclock);
 
 	if (!jit_ndi_send_create_sender(x))
 	{
@@ -280,12 +535,16 @@ t_jit_err jit_ndi_send_matrix_calc(t_jit_ndi_send* x, void* inputs, void* output
 		inputLock = (long)jit_object_method(inputMatrix, _jit_sym_lock, 1);
 		jit_object_method(inputMatrix, _jit_sym_getinfo, &inputMatrixInfo);
 		jit_object_method(inputMatrix, _jit_sym_getdata, &inputData);
-
+		
 		if (!inputData)
 		{
 			err = JIT_ERR_INVALID_INPUT;
 			goto out;
 		}
+
+		// TODO: Remove this when gl issue resolved
+		if (inputMatrixInfo.dim[0] == 1 || inputMatrixInfo.dim[1] == 1)
+			goto out;
 
 		if (inputMatrixInfo.dimcount != 2)
 		{
@@ -410,7 +669,8 @@ bool jit_ndi_send_create_sender(t_jit_ndi_send* x)
 	x->ndiSendInstance = ndiLib->send_create(&ndiSendCreateDesc);
 
 	jit_ndi_send_setcapabilities(x);
-	jit_ndi_send_updatetally(x);
+
+	clock_delay(x->receiveClock, METADATA_UPDATE_INTERVAL);
 
 	return x->ndiSendInstance != NULL;
 }
@@ -587,7 +847,7 @@ void jit_ndi_send_add_samples(t_jit_ndi_send* x, double** ins, long sampleFrames
 }
 
 
-void jit_ndi_send_receivedata(t_jit_ndi_send* x)
+void jit_ndi_send_receiveclock(t_jit_ndi_send* x)
 {
 	if (!x->ndiSendInstance)
 		return;
@@ -598,10 +858,353 @@ void jit_ndi_send_receivedata(t_jit_ndi_send* x)
 	const NDIlib_frame_type_e frameType = ndiLib->send_capture(x->ndiSendInstance, &metadata, 0);
 
 	if (frameType == NDIlib_frame_type_metadata)
-	{
-		int i = 0;
+	{		
+		yxml_t* y = malloc(sizeof(yxml_t) + YXML_BUFSIZE);
+		yxml_init(y, y + 1, YXML_BUFSIZE);
 
+		PtzXmlElement ptzElement = PTZ_NONE;
+		
+		char attrValue[YXML_MAX_ATTR_VALUE_LENGTH];
+		char* p = attrValue;
+
+		post(metadata.p_data);
+		post("\n");
+		
+		char* doc = metadata.p_data;
+		for(; *doc; ++doc)
+		{
+			int l;
+			const yxml_ret_t r = yxml_parse(y, *doc);
+			if(r < 0)
+			{
+				object_warn((t_object*)x, "Received badly formed XML from NDI receiver");
+				goto out;
+			}
+
+			switch (r)
+			{
+				case YXML_ELEMSTART:
+					ptzElement = string_to_ptz_xml_element(y->elem);
+					break;
+
+				case YXML_ELEMEND:
+					ptzElement = PTZ_NONE;
+					break;
+				
+				case YXML_ATTRSTART:
+					p = attrValue;
+					break;
+				
+				case YXML_ATTRVAL:
+					l = min(YXML_MAX_ATTR_VALUE_LENGTH - (p - attrValue), sizeof(y->data));
+					for(int i = 0; i < l; ++i, ++p)
+					{
+						*p = *(y->data + i);
+						
+						if (*p == 0)
+							break;
+					}
+					break;
+				
+				case YXML_ATTREND:
+					jit_ndi_send_set_ptz_attribute(x, ptzElement, y->attr, attrValue);
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		const yxml_ret_t r = yxml_eof(y);
+		if (r <  0)
+			object_warn((t_object*)x, "Received badly formed XML from NDI receiver");
+
+	out:
+		free(y);
 		ndiLib->send_free_metadata(x->ndiSendInstance, &metadata);
+	}
+
+	jit_ndi_send_update_ptz(x);
+
+	clock_delay(x->receiveClock, METADATA_UPDATE_INTERVAL);
+}
+
+void jit_ndi_send_set_ptz_attribute(t_jit_ndi_send* x, PtzXmlElement element, const char* attr_name, const char* attr_value)
+{
+	switch (element)
+	{
+		default:
+		case PTZ_NONE:
+			return;
+		
+		case PTZ_ZOOM:
+		{
+			const char zoom_s[] = "zoom";
+			if (strncasecmp(attr_name, zoom_s, sizeof(zoom_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+				{
+					x->attrPtzZoom = CLAMP(value, 0.0f, 1.0f);
+					jit_attr_setfloat(x, _sym_ptz_zoom, x->attrPtzZoom);
+				}
+				
+			}
+		}
+			break;
+		
+		case PTZ_ZOOM_SPEED:
+		{
+			const char zoom_speed_s[] = "zoom_speed";
+			if (strncasecmp(attr_name, zoom_speed_s, sizeof(zoom_speed_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+					x->ptzZoomSpeed = CLAMP(value, -1.0f, 1.0f);
+			}
+		}
+			break;
+		
+		case PTZ_PAN_TILT_SPEED:
+		{
+			const char pan_speed_s[] = "pan_speed";
+			const char tilt_speed_s[] = "tilt_speed";
+			if (strncasecmp(attr_name, pan_speed_s, sizeof(pan_speed_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+					x->ptzPanTiltSpeed[0] = CLAMP(value, -1.0f, 1.0f);
+				
+			}
+			else if (strncasecmp(attr_name, tilt_speed_s, sizeof(tilt_speed_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+					x->ptzPanTiltSpeed[1] = CLAMP(value, -1.0f, 1.0f);
+			}
+		}
+			break;
+		
+		case PTZ_PAN_TILT:
+		{
+			const char pan_s[] = "pan";
+			const char tilt_s[] = "tilt";
+			if (strncasecmp(attr_name, pan_s, sizeof(pan_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+				{
+					x->attrPtzPanTilt[0] = CLAMP(value, -1.0f, 1.0f);
+					jit_attr_setfloat_array(x, _sym_ptz_pantilt, 2, x->attrPtzPanTilt);
+				}
+				
+			}
+			else if (strncasecmp(attr_name, tilt_s, sizeof(tilt_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+				{
+					x->attrPtzPanTilt[1] = CLAMP(value, -1.0f, 1.0f);
+					jit_attr_setfloat_array(x, _sym_ptz_pantilt, 2, x->attrPtzPanTilt);
+				}
+				
+			}
+		}
+			break;
+		
+		case PTZ_STORE_PRESET:
+		{
+			const char index_s[] = "index";
+			if (strncasecmp(attr_name, index_s, sizeof(index_s)) == 0)
+			{
+				int value;
+				if (try_parse_int(attr_value, &value))
+				{
+					if (value >= 0 && value < 100)
+						x->ptzPresetStore = value;
+				}
+				
+			}
+		}
+			break;
+		
+		case PTZ_RECALL_PRESET:
+		{
+			const char index_s[] = "index";
+			const char speed_s[] = "speed";
+			if (strncasecmp(attr_name, index_s, sizeof(index_s)) == 0)
+			{
+				int value;
+				if (try_parse_int(attr_value, &value))
+				{
+					if (value >= 0 && value < 100)
+						x->ptzPresetRecall = value;
+				}
+			}
+
+			if (strncasecmp(attr_name, speed_s, sizeof(speed_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+					x->ptzPresetRecallSpeed = CLAMP(value, 0.0f, 1.0f);	
+			}
+		}
+			break;
+		
+		case PTZ_FLIP:
+		{
+			const char enabled_s[] = "enabled";
+			if (strncasecmp(attr_name, enabled_s, sizeof(enabled_s)) == 0)
+			{
+				t_bool value;
+				if (try_parse_bool(attr_value, &value))
+				{
+					x->attrPtzFlip = value;
+					jit_attr_setlong(x, _sym_ptz_flip, x->attrPtzFlip);
+				}
+				
+			}
+		}
+			break;
+		
+		case PTZ_FOCUS:
+		{
+			const char mode_s[] = "mode";
+			const char distance_s[] = "distance";
+			if (strncasecmp(attr_name, mode_s, sizeof(mode_s)) == 0)
+			{
+				const char auto_s[] = "auto";
+				const char manual_s[] = "manual";
+
+				if (strncasecmp(attr_value, auto_s, sizeof(auto_s)) == 0)
+				{
+					x->attrPtzAutoFocus = true;
+					jit_attr_setlong(x, _sym_ptz_autofocus, x->attrPtzAutoFocus);
+				}
+				else if (strncasecmp(attr_value, manual_s, sizeof(manual_s)) == 0)
+				{
+					x->attrPtzAutoFocus = false;
+					jit_attr_setlong(x, _sym_ptz_autofocus, x->attrPtzAutoFocus);
+				}
+			}
+			else if (strncasecmp(attr_name, distance_s, sizeof(distance_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+				{
+					x->attrPtzFocus = CLAMP(value, 0.0f, 1.0f);
+					jit_attr_setfloat(x, _sym_ptz_focus, x->attrPtzFocus);
+				}
+				
+			}
+		}
+			break;
+		
+		case PTZ_FOCUS_SPEED:
+		{
+			const char focus_speed_s[] = "focus_speed";
+			if (strncasecmp(attr_name, focus_speed_s, sizeof(focus_speed_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+					x->ptzFocusSpeed = CLAMP(value, -1.0f, 1.0f);
+			}
+		}
+			break;
+		
+		case PTZ_WHITE_BALANCE:
+		{
+			const char mode_s[] = "mode";
+			const char red_s[] = "red";
+			const char blue_s[] = "blue";
+			
+			if (strncasecmp(attr_name, mode_s, sizeof(mode_s)) == 0)
+			{
+				const char auto_s[] = "auto";
+				const char indoor_s[] = "indoor";
+				const char outdoor_s[] = "outdoor";
+				const char one_push_s[] = "one_push";
+				const char manual_s[] = "manual";
+
+				if (strncasecmp(attr_value, auto_s, sizeof(auto_s)) == 0)
+				{
+					x->attrPtzWhiteBalanceMode = WHITEBALANCEMODE_AUTO;
+					jit_attr_setlong(x, _sym_ptz_whitebalance_mode, x->attrPtzWhiteBalanceMode);
+				}
+				else if (strncasecmp(attr_value, indoor_s, sizeof(indoor_s)) == 0)
+				{
+					x->attrPtzWhiteBalanceMode = WHITEBALANCEMODE_INDOOR;
+					jit_attr_setlong(x, _sym_ptz_whitebalance_mode, x->attrPtzWhiteBalanceMode);
+				}
+				else if (strncasecmp(attr_value, outdoor_s, sizeof(outdoor_s)) == 0)
+				{
+					x->attrPtzWhiteBalanceMode = WHITEBALANCEMODE_OUTDOOR;
+					jit_attr_setlong(x, _sym_ptz_whitebalance_mode, x->attrPtzWhiteBalanceMode);
+				}
+				else if (strncasecmp(attr_value, one_push_s, sizeof(one_push_s)) == 0)
+				{
+					x->attrPtzWhiteBalanceMode = WHITEBALANCEMODE_ONE_PUSH;
+					jit_attr_setlong(x, _sym_ptz_whitebalance_mode, x->attrPtzWhiteBalanceMode);
+				}
+				else if (strncasecmp(attr_value, manual_s, sizeof(manual_s)) == 0)
+				{
+					x->attrPtzWhiteBalanceMode = WHITEBALANCEMODE_MANUAL;
+					jit_attr_setlong(x, _sym_ptz_whitebalance_mode, x->attrPtzWhiteBalanceMode);
+				}
+			}
+			else if (strncasecmp(attr_name, red_s, sizeof(red_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+				{
+					x->attrPtzWhiteBalanceRed = CLAMP(value, 0.0f, 1.0f);
+					jit_attr_setfloat(x, _sym_ptz_whitebalance_red, x->attrPtzWhiteBalanceRed);
+				}
+			}
+			else if (strncasecmp(attr_name, blue_s, sizeof(blue_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+				{
+					x->attrPtzWhiteBalanceBlue = CLAMP(value, 0.0f, 1.0f);
+					jit_attr_setfloat(x, _sym_ptz_whitebalance_blue, x->attrPtzWhiteBalanceBlue);
+				}
+			}
+		}
+			break;
+		
+		case PTZ_EXPOSURE:
+		{
+			const char mode_s[] = "mode";
+			const char value_s[] = "value";
+			if (strncasecmp(attr_name, mode_s, sizeof(mode_s)) == 0)
+			{
+				const char auto_s[] = "auto";
+				const char manual_s[] = "manual";
+
+				if (strncasecmp(attr_value, auto_s, sizeof(auto_s)) == 0)
+				{
+					x->attrPtzAutoFocus = true;
+					jit_attr_setlong(x, _sym_ptz_autofocus, x->attrPtzAutoFocus);
+				}
+				else if (strncasecmp(attr_value, manual_s, sizeof(manual_s)) == 0)
+				{
+					x->attrPtzAutoFocus = false;
+					jit_attr_setlong(x, _sym_ptz_autofocus, x->attrPtzAutoFocus);
+				}
+			}
+			else if (strncasecmp(attr_name, value_s, sizeof(value_s)) == 0)
+			{
+				float value;
+				if (try_parse_float(attr_value, &value))
+				{
+					x->attrPtzExposure = CLAMP(value, 0.0f, 1.0f);
+					jit_attr_setfloat(x, _sym_ptz_exposure, x->attrPtzExposure);
+				}
+				
+			}
+		}
+			break;
 	}
 }
 
@@ -626,8 +1229,6 @@ void jit_ndi_send_updatetally(t_jit_ndi_send* x)
 		jit_attr_setlong(x, _sym_tally_onpreview, x->attrTallyOnPreview);
 		// Doesn't change attribute but sends notification
 	}
-
-	clock_delay(x->receiveClock, TALLY_UPDATE_INTERVAL);
 }
 
 void jit_ndi_send_setcapabilities(t_jit_ndi_send* x)
@@ -638,7 +1239,8 @@ void jit_ndi_send_setcapabilities(t_jit_ndi_send* x)
 	ndiLib->send_clear_connection_metadata(x->ndiSendInstance);
 
 	char capabilitiesXml[64];
-	snprintf(capabilitiesXml, 64, "<ndi_capabilities ntk_ptz=\"%s\"/>", x->attrPtzEnable ? "true" : "false");
+	snprintf(capabilitiesXml, 64, "<ndi_capabilities ntk_ptz=\"%s\" ntk_kvm=\"%s\"/>", 
+		x->attrPtzEnable ? "true" : "false", x->attrKvmEnable ? "true" : "false");
 
 	NDIlib_metadata_frame_t capabilities;
 	capabilities.length = 0;
@@ -646,6 +1248,73 @@ void jit_ndi_send_setcapabilities(t_jit_ndi_send* x)
 	capabilities.p_data = capabilitiesXml;
 	ndiLib->send_add_connection_metadata(x->ndiSendInstance, &capabilities);
 }
+
+void jit_ndi_send_update_ptz(t_jit_ndi_send* x)
+{
+	if (!x->attrPtzEnable)
+		return;
+
+	if (fabsf(x->ptzZoomSpeed) > FLT_EPSILON)
+	{
+		x->attrPtzZoom = CLAMP(x->attrPtzZoom + (x->ptzZoomSpeed * x->attrPtzZoomSensitivity), 0.0f, 1.0f);
+		jit_attr_setfloat(x, _sym_ptz_zoom, x->attrPtzZoom);
+	}
+
+	if (fabsf(x->ptzPanTiltSpeed[0]) > FLT_EPSILON)
+	{
+		x->attrPtzPanTilt[0] = CLAMP(x->attrPtzPanTilt[0] + (x->ptzPanTiltSpeed[0] * x->attrPtzPanTiltSensitivity[0]), -1.0f, 1.0f);
+		jit_attr_setfloat_array(x, _sym_ptz_pantilt, 2, x->attrPtzPanTilt);
+	}
+
+	if (fabsf(x->ptzPanTiltSpeed[1]) > FLT_EPSILON)
+	{
+		x->attrPtzPanTilt[1] = CLAMP(x->attrPtzPanTilt[1] + (x->ptzPanTiltSpeed[1] * x->attrPtzPanTiltSensitivity[1]), -1.0f, 1.0f);
+		jit_attr_setfloat_array(x, _sym_ptz_pantilt, 2, x->attrPtzPanTilt);
+	}
+
+	if (fabsf(x->ptzFocusSpeed) > FLT_EPSILON)
+	{
+		x->attrPtzFocus = CLAMP(x->attrPtzFocus + (x->ptzFocusSpeed * x->attrPtzFocusSensitivity), 0.0f, 1.0f);
+		jit_attr_setfloat(x, _sym_ptz_focus, x->attrPtzFocus);
+	}
+
+	if (x->ptzPresetStore >= 0)
+	{
+		jit_object_notify(x, _sym_preset_store, x);
+		x->ptzPresetStore = -1;
+	}
+
+	if (x->ptzPresetRecall >= 0)
+	{
+		jit_object_notify(x, _sym_preset_recall, x);
+		x->ptzPresetRecall = -1;
+	}
+}
+
+void jit_ndi_send_ptz_panic(t_jit_ndi_send* x)
+{
+	x->ptzZoomSpeed = 0.0f;
+	x->ptzPanTiltSpeed[0] = 0.0f;
+	x->ptzPanTiltSpeed[1] = 0.0f;
+	x->ptzFocusSpeed = 0.0f;
+}
+
+
+t_jit_err  jit_ndi_send_get_preset_store(t_jit_ndi_send* x, t_symbol *s, long ac, t_atom *av, t_atom* rv)
+{
+	atom_setlong(rv, x->ptzPresetStore);
+}
+
+t_jit_err  jit_ndi_send_get_preset_recall(t_jit_ndi_send* x, t_symbol *s, long ac, t_atom *av, t_atom* rv)
+{
+	t_atom vals[2];
+
+	atom_setlong(vals, x->ptzPresetRecall);
+	atom_setfloat(vals + 1, x->ptzPresetRecallSpeed);
+	
+	atom_setobj(rv, atomarray_new(2, vals));
+}
+
 
 t_jit_err jit_ndi_send_setattr_colormode(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
 {
@@ -732,6 +1401,26 @@ t_jit_err jit_ndi_send_setattr_ptz_enable(t_jit_ndi_send* x, void* attr, long ar
 	if (v != x->attrPtzEnable)
 	{
 		x->attrPtzEnable = v;
+
+		if (!x->attrPtzEnable)
+			jit_ndi_send_ptz_panic(x);
+		
+		jit_ndi_send_setcapabilities(x);
+	}
+
+	return JIT_ERR_NONE;
+}
+
+t_jit_err jit_ndi_send_setattr_kvm_enable(t_jit_ndi_send* x, void* attr, long argc, t_atom* argv)
+{
+	if (argc < 1)
+		return JIT_ERR_NONE;
+
+	const t_bool v = jit_atom_getlong(argv) > 0;
+
+	if (v != x->attrKvmEnable)
+	{
+		x->attrKvmEnable = v;
 		jit_ndi_send_setcapabilities(x);
 	}
 
@@ -744,6 +1433,7 @@ t_jit_err jit_ndi_send_setattr_dummy(t_jit_ndi_send* x, void* attr, long argc, t
 	// the OPAQUE flags as it allows the attribute to have a style and appear in attrui.
 	return JIT_ERR_NONE;
 }
+
 
 t_atom_float framerate_to_value(Framerate fr)
 {
@@ -759,4 +1449,80 @@ t_atom_float framerate_to_value(Framerate fr)
 	case FRAMERATE_59_94: return 60 / 1.001;
 	case FRAMERATE_60: return 60;
 	}
+}
+
+PtzXmlElement string_to_ptz_xml_element(const char* c)
+{
+	const char zoom[] = "ntk_ptz_zoom";
+	const char zoom_speed[] = "ntk_ptz_zoom_speed";
+	const char pan_tilt_speed[] = "ntk_ptz_pan_tilt_speed";
+	const char pan_tilt[] = "ntk_ptz_pan_tilt";
+	const char store_preset[] = "ntk_ptz_store_preset";
+	const char recall_preset[] = "ntk_ptz_recall_preset";
+	const char flip[] = "ntk_ptz_flip";
+	const char focus[] = "ntk_ptz_focus";
+	const char focus_speed[] = "ntk_ptz_focus_speed";
+	const char white_balance[] = "ntk_ptz_white_balance";
+	const char exposure[] = "ntk_ptz_exposure";
+
+	if (strncasecmp(c, zoom, sizeof(zoom)) == 0)
+		return PTZ_ZOOM;
+	if (strncasecmp(c, zoom_speed, sizeof(zoom_speed)) == 0)
+		return PTZ_ZOOM_SPEED;
+	if (strncasecmp(c, pan_tilt_speed, sizeof(pan_tilt_speed)) == 0)
+		return PTZ_PAN_TILT_SPEED;
+	if (strncasecmp(c, pan_tilt, sizeof(pan_tilt)) == 0)
+		return PTZ_PAN_TILT;
+	if (strncasecmp(c, store_preset, sizeof(store_preset)) == 0)
+		return PTZ_STORE_PRESET;
+	if (strncasecmp(c, recall_preset, sizeof(recall_preset)) == 0)
+		return PTZ_RECALL_PRESET;
+	if (strncasecmp(c, flip, sizeof(flip)) == 0)
+		return PTZ_FLIP;
+	if (strncasecmp(c, focus, sizeof(focus)) == 0)
+		return PTZ_FOCUS;
+	if (strncasecmp(c, focus_speed, sizeof(focus_speed)) == 0)
+		return PTZ_FOCUS_SPEED;
+	if (strncasecmp(c, white_balance, sizeof(white_balance)) == 0)
+		return PTZ_WHITE_BALANCE;
+	if (strncasecmp(c, exposure, sizeof(exposure)) == 0)
+		return PTZ_EXPOSURE;
+	return PTZ_NONE;
+}
+
+t_bool try_parse_int(const char* c, int* value)
+{
+	char* endPtr;
+	*value = (int)strtol(c, &endPtr, 10);
+	return endPtr != c;
+}
+
+t_bool try_parse_float(const char* c, float* value)
+{
+	char* endPtr;
+	*value = strtof(c, &endPtr);
+	return endPtr != c;
+}
+
+t_bool try_parse_bool(const char* c, t_bool* value)
+{
+	const char true_s[] = "true";
+	const char one_s[] = "1";
+	const char false_s[] = "false";
+	const char zero_s[] = "0";
+
+	if (strncasecmp(c, one_s, sizeof(one_s) == 0) 
+		|| strncasecmp(c, true_s, sizeof(true_s) == 0))
+	{
+		*value = true;
+		return true;
+	}
+	if (strncasecmp(c, false_s, sizeof(false_s) == 0)
+		|| strncasecmp(c, zero_s, sizeof(zero_s) == 0))
+	{
+		*value = false;
+		return true;
+	}
+
+	return false;
 }

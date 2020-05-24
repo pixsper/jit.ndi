@@ -263,11 +263,13 @@
   <ItemGroup>
     <ClCompile Include="$(C74SUPPORT)\max-includes\common\dllmain_win.c" />
     <ClCompile Include="$(C74SUPPORT)\max-includes\common\commonsyms.c" />
+    <ClCompile Include="lib\yxml\yxml.c" />
     <ClCompile Include="src\jit.ndi.send.c" />
     <ClCompile Include="src\max.jit.ndi.send~.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="build\version.h" />
+    <ClInclude Include="lib\yxml\yxml.h" />
     <ClInclude Include="src\ndi_runtime.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

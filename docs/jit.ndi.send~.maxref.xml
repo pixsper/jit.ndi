@@ -73,7 +73,12 @@
 		
 		<attribute name='ptz_enable' get='1' set='1' type='long' size='1' >
 			<digest>PTZ control enable</digest>
-			<description>Whether PTZ control is allowed for this source. If enabled PTZ attribute values will be output from the dump outlet.</description>
+			<description>Whether PTZ control is allowed for this source. If enabled received PTZ control data will be output from the dump outlet.</description>
+		</attribute>
+		
+		<attribute name='kvm_enable' get='1' set='1' type='long' size='1' >
+			<digest>KVM control enable</digest>
+			<description>Whether KVM control is allowed for this source. If enabled received KVM control data will be output from the dump outlet.</description>
 		</attribute>
 		
 		<attribute name='tally_onpreview' get='1' set='0' type='long' size='1' >

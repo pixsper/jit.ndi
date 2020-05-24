@@ -31,13 +31,14 @@ typedef enum _ColorMode
 	COLORMODE_ARGB,
 	COLORMODE_UYVY
 
-} ColorMode;
+} color_mode;
 
 typedef enum _WhiteBalanceMode
 {
 	WHITEBALANCEMODE_AUTO,
-	WHITEBALANCEMODE_AUTO_INDOOR,
-	WHITEBALANCEMODE_AUTO_OUTDOOR,
+	WHITEBALANCEMODE_INDOOR,
+	WHITEBALANCEMODE_OUTDOOR,
+	WHITEBALANCEMODE_ONE_PUSH,
 	WHITEBALANCEMODE_MANUAL
 
 } WhiteBalanceMode;
@@ -69,16 +70,18 @@ typedef struct _jit_ndi_receive
 	t_bool attrTallyOnProgram;
 	t_bool attrTallyOnPreview;
 
-	ColorMode attrColorMode;
+	color_mode attrColorMode;
 	t_bool attrLowBandwidth;
 
 	float attrPtzZoom;
 	float attrPtzZoomSpeed;
 	float attrPtzPanTilt[2];
 	float attrPtzPanTiltSpeed[2];
+	t_bool attrPtzFlip;
 
 	t_bool attrPtzAutoFocus;
 	float attrPtzFocus;
+	float attrPtzFocusSpeed;
 
 	WhiteBalanceMode attrPtzWhiteBalanceMode;
 	float attrPtzWhiteBalanceRed;
@@ -233,13 +236,21 @@ t_jit_err jit_ndi_receive_init()
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "4");
 
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_flip", _jit_sym_char, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzFlip));
+	jit_class_addattr(_jit_ndi_receive_class, attr);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Flip\"");
+	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "5");
+
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_autofocus", _jit_sym_char, attrflags, 
 		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzAutoFocus));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Auto-focus\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
-	object_addattr_parse(attr, "order",_jit_sym_long, 0, "5");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "6");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_focus", _jit_sym_float32, attrflags, 
 		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzFocus));
@@ -247,17 +258,25 @@ t_jit_err jit_ndi_receive_init()
 	attr_addfilter_clip(attr, 0, 1, true, true);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Focus\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
-	object_addattr_parse(attr, "order",_jit_sym_long, 0, "6");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "7");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
-	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance", _jit_sym_char, attrflags, 
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_focus_speed", _jit_sym_float32, attrflags, 
+		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzFocusSpeed));
+	jit_class_addattr(_jit_ndi_receive_class, attr);
+	attr_addfilter_clip(attr, 0, 1, true, true);
+	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Focus Speed\"");
+	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "8");
+
+	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance_mode", _jit_sym_char, attrflags, 
 		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzWhiteBalanceMode));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"White Balance Mode\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "enumindex");
-	object_addattr_parse(attr, "enumvals", _jit_sym_symbol, 0, "\"Auto\" \"Auto (Indoor)\" \"Auto (Outdoor)\" \"Manual\"");
+	object_addattr_parse(attr, "enumvals", _jit_sym_symbol, 0, "\"Auto\" \"Indoor\" \"Outdoor\" \"One-push\" \"Manual\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
-	object_addattr_parse(attr, "order",_jit_sym_long, 0, "7");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "9");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance_red", _jit_sym_float32, attrflags, 
 		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzWhiteBalanceRed));
@@ -265,7 +284,7 @@ t_jit_err jit_ndi_receive_init()
 	attr_addfilter_clip(attr, 0, 1, true, true);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"White Balance Red\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
-	object_addattr_parse(attr, "order",_jit_sym_long, 0, "8");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "10");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_whitebalance_blue", _jit_sym_float32, attrflags, 
@@ -274,7 +293,7 @@ t_jit_err jit_ndi_receive_init()
 	attr_addfilter_clip(attr, 0, 1, true, true);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"White Balance Blue\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
-	object_addattr_parse(attr, "order",_jit_sym_long, 0, "9");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "11");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_autoexposure", _jit_sym_char, attrflags, 
@@ -283,7 +302,7 @@ t_jit_err jit_ndi_receive_init()
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Auto-exposure\"");
 	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
-	object_addattr_parse(attr, "order",_jit_sym_long, 0, "10");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "12");
 
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_exposure", _jit_sym_float32, attrflags, 
 		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzExposure));
@@ -291,7 +310,7 @@ t_jit_err jit_ndi_receive_init()
 	attr_addfilter_clip(attr, 0, 1, true, true);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Exposure\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
-	object_addattr_parse(attr, "order",_jit_sym_long, 0, "11");
+	object_addattr_parse(attr, "order",_jit_sym_long, 0, "13");
 	object_addattr_parse(attr, "disabled",_jit_sym_long, 0, "1");
 
 
@@ -708,7 +727,7 @@ t_jit_err jit_ndi_receive_setattr_colormode(t_jit_ndi_receive* x, void* attr, lo
 	if (argc < 1)
 		return JIT_ERR_NONE;
 
-	ColorMode updatedValue = x->attrColorMode;
+	color_mode updatedValue = x->attrColorMode;
 
 	t_symbol* s = jit_atom_getsym(argv);
 

@@ -49,6 +49,24 @@ t_symbol* _sym_runtimeurl;
 t_symbol* _sym_getnuminputchannels;
 t_symbol* _sym_inputchanged;
 
+t_symbol* _sym_ptz_zoom_sensitivity;
+t_symbol* _sym_ptz_pantilt_sensitivity;
+t_symbol* _sym_ptz_focus_sensitivity;
+t_symbol* _sym_ptz_zoom;
+t_symbol* _sym_ptz_pantilt;
+t_symbol* _sym_ptz_flip;
+t_symbol* _sym_ptz_autofocus;
+t_symbol* _sym_ptz_focus;
+t_symbol* _sym_ptz_whitebalance_mode;
+t_symbol* _sym_ptz_whitebalance_red;
+t_symbol* _sym_ptz_whitebalance_blue;
+t_symbol* _sym_ptz_autoexposure;
+t_symbol* _sym_ptz_exposure;
+t_symbol* _sym_preset_store;
+t_symbol* _sym_preset_recall;
+t_symbol* _sym_get_preset_store;
+t_symbol* _sym_get_preset_recall;
+
 t_jit_err jit_ndi_send_init();
 
 void* max_jit_ndi_send_new(t_symbol* s, long argc, t_atom* argv);
@@ -82,6 +100,24 @@ void ext_main(void* r)
 	_sym_tally_onpreview = gensym("tally_onpreview");
 	_sym_runtimeurl = gensym("runtimeurl");
 	_sym_getnuminputchannels = gensym("getnuminputchannels");
+
+	_sym_ptz_zoom_sensitivity = gensym("ptz_zoom_sensitivity");
+	_sym_ptz_pantilt_sensitivity = gensym("ptz_pantilt_sensitivity");
+	_sym_ptz_focus_sensitivity = gensym("ptz_focus_sensitivity");
+	_sym_ptz_zoom = gensym("ptz_zoom");
+	_sym_ptz_pantilt = gensym("ptz_pantilt");
+	_sym_ptz_flip = gensym("ptz_flip");
+	_sym_ptz_autofocus = gensym("ptz_autofocus");
+	_sym_ptz_focus = gensym("ptz_focus");
+	_sym_ptz_whitebalance_mode = gensym("ptz_whitebalance_mode");
+	_sym_ptz_whitebalance_red = gensym("ptz_whitebalance_red");
+	_sym_ptz_whitebalance_blue = gensym("ptz_whitebalance_blue");
+	_sym_ptz_autoexposure = gensym("ptz_autoexposure");
+	_sym_ptz_exposure = gensym("ptz_exposure");
+	_sym_preset_store = gensym("preset_store");
+	_sym_preset_recall = gensym("preset_recall");
+	_sym_get_preset_store = gensym("get_preset_store");
+	_sym_get_preset_recall = gensym("get_preset_recall");
 
 	jit_ndi_send_init();
 
@@ -184,14 +220,35 @@ void max_jit_ndi_send_notify(t_max_jit_ndi_send* x, t_symbol* s, t_symbol* msg, 
 	{
 		 t_symbol* attrname = (t_symbol*)jit_object_method((t_object *)data, _sym_getname); 
 
-		 if (attrname == _sym_tally_onprogram || attrname == _sym_tally_onpreview)
+		 if (attrname == _sym_tally_onprogram || attrname == _sym_tally_onpreview
+			 || attrname == _sym_ptz_zoom || attrname == _sym_ptz_pantilt || attrname == _sym_ptz_flip 
+			 || attrname == _sym_ptz_autofocus || attrname == _sym_ptz_focus
+			 || attrname == _sym_ptz_whitebalance_mode || attrname == _sym_ptz_whitebalance_red || attrname == _sym_ptz_whitebalance_blue
+			 || attrname == _sym_ptz_exposure || attrname == _sym_ptz_autoexposure)
 		 {
 			long ac = 0;
 			t_atom* av = NULL;
-			object_method((t_object *)data, _sym_get, x->jitObject, &ac, &av);
+			object_method((t_object*)data, _sym_get, x->jitObject, &ac, &av);
 			max_jit_obex_dumpout(x, attrname, ac, av);
 		 }
-	} 
+	}
+	else if (msg == _sym_preset_store)
+	{
+		t_atom rv;
+		object_method_typed((t_object*)data, _sym_get_preset_store, 0, NULL, &rv);
+		max_jit_obex_dumpout(x, _sym_preset_store, 1, &rv);
+	}
+	else if (msg == _sym_preset_recall)
+	{
+		t_atom rv;
+		object_method_typed((t_object*)data, _sym_get_preset_recall, 0, NULL, &rv);
+
+		t_atomarray* vals = atom_getobj(&rv);
+		long ac;
+		t_atom* av;
+		atomarray_getatoms(vals, &ac, &av);
+		max_jit_obex_dumpout(x, _sym_preset_recall, ac, av);
+	}
 	else
 	{
 		max_jit_mop_notify(x, s, msg);

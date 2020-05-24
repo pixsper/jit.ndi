@@ -9,14 +9,23 @@
     </ClCompile>
     <ClCompile Include="src\jit.ndi.send.c" />
     <ClCompile Include="src\max.jit.ndi.send~.c" />
+    <ClCompile Include="lib\yxml\yxml.c">
+      <Filter>yxml</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Max SDK">
       <UniqueIdentifier>{78dfc96d-8ace-4128-afc1-62af6606231d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="yxml">
+      <UniqueIdentifier>{62ebfdc6-d76b-4c84-a003-c93e250cd07c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ndi_runtime.h" />
     <ClInclude Include="build\version.h" />
+    <ClInclude Include="lib\yxml\yxml.h">
+      <Filter>yxml</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
