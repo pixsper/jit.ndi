@@ -4,13 +4,13 @@
 		"appversion" : 		{
 			"major" : 8,
 			"minor" : 1,
-			"revision" : 3,
+			"revision" : 6,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 1186.0, 320.0, 675.0, 897.0 ],
+		"rect" : [ 1755.0, 518.0, 675.0, 897.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -39,6 +39,7 @@
 		"subpatcher_template" : "",
 		"showrootpatcherontab" : 0,
 		"showontab" : 0,
+		"assistshowspatchername" : 0,
 		"boxes" : [ 			{
 				"box" : 				{
 					"id" : "obj-2",
@@ -50,13 +51,13 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 6,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 1186.0, 346.0, 675.0, 871.0 ],
+						"rect" : [ 0.0, 26.0, 675.0, 871.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -84,6 +85,7 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"showontab" : 1,
+						"assistshowspatchername" : 0,
 						"boxes" : [ 							{
 								"box" : 								{
 									"id" : "obj-55",
@@ -91,7 +93,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 520.0, 170.0, 143.0, 131.0 ],
+									"patching_rect" : [ 520.0, 170.0, 143.0, 127.0 ],
 									"style" : "helpfile_label",
 									"text" : "The 'ptz_pantilt' attribute sets the pan/tilt directly whereas the 'ptz_pantilt_speed' attribute adjusts the current pan/tilt position. Zoom and focus attributes also follow this same pattern."
 								}
@@ -207,7 +209,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 100.0, 420.0, 420.0, 48.0 ],
+									"patching_rect" : [ 100.0, 420.0, 420.0, 47.0 ],
 									"style" : "helpfile_label",
 									"text" : "These messages allow interaction with preset functionality on the NDI source. Note that any preset data is managed and stored on the source, not by jit.ndi.receiver~."
 								}
@@ -220,7 +222,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 230.0, 150.0, 120.0, 117.0 ],
+									"patching_rect" : [ 230.0, 150.0, 120.0, 114.0 ],
 									"style" : "helpfile_label",
 									"text" : "This read-only attribute indicates whether the connected source has PTZ capability. All PTZ attributes are disabled unless this attribute is 1."
 								}
@@ -233,7 +235,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 140.0, 90.0, 514.0, 48.0 ],
+									"patching_rect" : [ 140.0, 90.0, 514.0, 47.0 ],
 									"style" : "helpfile_label",
 									"text" : "NDI sources can advertise themselves as PTZ devices to allow control data to be received from NDI receivers. jit.ndi.receive~ contains attributes which allow control of these PTZ properties."
 								}
@@ -820,7 +822,7 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 6,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -854,6 +856,7 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"showontab" : 1,
+						"assistshowspatchername" : 0,
 						"boxes" : [ 							{
 								"box" : 								{
 									"bubble" : 1,
@@ -932,7 +935,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 280.0, 100.0, 358.0, 75.0 ],
+									"patching_rect" : [ 280.0, 100.0, 358.0, 74.0 ],
 									"style" : "helpfile_label",
 									"text" : "NDI video is sent over the network in the UYVY colorspace for reasons of efficiency. ARGB matrces will be internally converted, however if using UYVY in a patch this conversion can be avoided (and performance improved) by setting correct colormode on jit.ndi.receive~."
 								}
@@ -1127,13 +1130,13 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 6,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 675.0, 871.0 ],
+						"rect" : [ 1755.0, 544.0, 675.0, 871.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -1161,7 +1164,39 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"showontab" : 1,
+						"assistshowspatchername" : 0,
 						"boxes" : [ 							{
+								"box" : 								{
+									"bubble" : 1,
+									"bubbleside" : 0,
+									"fontname" : "Arial",
+									"fontsize" : 13.0,
+									"id" : "obj-9",
+									"linecount" : 4,
+									"maxclass" : "comment",
+									"numinlets" : 1,
+									"numoutlets" : 0,
+									"patching_rect" : [ 400.0, 650.0, 160.0, 84.0 ],
+									"text" : "Tally status can be set using attributes. This status is received by the sender."
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontface" : 0,
+									"fontname" : "Arial",
+									"fontsize" : 12.0,
+									"id" : "obj-37",
+									"maxclass" : "jit.fpsgui",
+									"mode" : 3,
+									"numinlets" : 1,
+									"numoutlets" : 2,
+									"outlettype" : [ "", "" ],
+									"patching_rect" : [ 260.0, 560.0, 80.0, 35.0 ]
+								}
+
+							}
+, 							{
 								"box" : 								{
 									"id" : "obj-38",
 									"maxclass" : "comment",
@@ -1180,8 +1215,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 500.0, 110.0, 116.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser https://ndi.tv/"
+									"patching_rect" : [ 500.0, 110.0, 116.0, 49.0 ],
+									"text" : ";\rmax launchbrowser https://ndi.tv/"
 								}
 
 							}
@@ -1212,8 +1247,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 290.0, 800.0, 160.0, 64.0 ],
-									"text" : ";\r\nmax launchbrowser https://www.theimpersonalstereo.com"
+									"patching_rect" : [ 290.0, 800.0, 160.0, 62.0 ],
+									"text" : ";\rmax launchbrowser https://www.theimpersonalstereo.com"
 								}
 
 							}
@@ -1226,8 +1261,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 80.0, 810.0, 210.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser https://www.davidbutlerdesign.co.uk"
+									"patching_rect" : [ 80.0, 810.0, 210.0, 49.0 ],
+									"text" : ";\rmax launchbrowser https://www.davidbutlerdesign.co.uk"
 								}
 
 							}
@@ -1292,7 +1327,7 @@
 									"numoutlets" : 0,
 									"patching_rect" : [ 80.0, 810.0, 310.0, 20.0 ],
 									"style" : "helpfile_label",
-									"text" : "jit.ndi v0.2.0 by David Butler / The Impersonal Stereo",
+									"text" : "jit.ndi v0.2.1 by David Butler / The Impersonal Stereo",
 									"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ]
 								}
 
@@ -1318,7 +1353,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 390.0, 310.0, 262.0, 55.0 ],
+									"patching_rect" : [ 390.0, 310.0, 262.0, 54.0 ],
 									"text" : "The list of available sources can be retrieved as a dictionary or as messages to populate a umenu."
 								}
 
@@ -1330,7 +1365,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
-									"patching_rect" : [ 110.0, 560.0, 160.0, 120.0 ]
+									"patching_rect" : [ 90.0, 560.0, 160.0, 120.0 ]
 								}
 
 							}
@@ -1347,21 +1382,6 @@
 							}
 , 							{
 								"box" : 								{
-									"bubble" : 1,
-									"fontname" : "Arial",
-									"fontsize" : 13.0,
-									"id" : "obj-9",
-									"linecount" : 4,
-									"maxclass" : "comment",
-									"numinlets" : 1,
-									"numoutlets" : 0,
-									"patching_rect" : [ 450.0, 580.0, 160.0, 70.0 ],
-									"text" : "Tally status can be set using attributes. This status is received by the sender."
-								}
-
-							}
-, 							{
-								"box" : 								{
 									"attr" : "tally_onprogram",
 									"id" : "obj-35",
 									"lock" : 1,
@@ -1369,7 +1389,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 300.0, 620.0, 130.0, 22.0 ]
+									"patching_rect" : [ 410.0, 620.0, 130.0, 22.0 ]
 								}
 
 							}
@@ -1382,7 +1402,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 300.0, 590.0, 130.0, 22.0 ]
+									"patching_rect" : [ 410.0, 590.0, 130.0, 22.0 ]
 								}
 
 							}
@@ -1481,8 +1501,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 540.0, 430.0, 110.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser $1"
+									"patching_rect" : [ 540.0, 430.0, 110.0, 49.0 ],
+									"text" : ";\rmax launchbrowser $1"
 								}
 
 							}
@@ -1519,7 +1539,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 20.0, 254.0, 560.0, 34.0 ],
+									"patching_rect" : [ 20.0, 254.0, 560.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "This object requires Newtek NDI Runtime or Newtek NDI Tools to be installed in order to function. Please download from the link in the top right."
 								}
@@ -1585,8 +1605,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 340.0, 80.0, 150.0, 64.0 ],
-									"text" : ";\r\nmax launchbrowser https://www.newtek.com/ndi/tools/"
+									"patching_rect" : [ 340.0, 80.0, 150.0, 62.0 ],
+									"text" : ";\rmax launchbrowser https://www.newtek.com/ndi/tools/"
 								}
 
 							}
@@ -1602,7 +1622,7 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 120.0, 390.0, 204.737503051757813, 69.0 ]
+									"patching_rect" : [ 120.0, 390.0, 204.26300048828125, 69.0 ]
 								}
 
 							}
@@ -1613,7 +1633,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 90.0, 740.0, 210.0, 34.0 ],
+									"patching_rect" : [ 90.0, 740.0, 210.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "Switch audio processing on to hear received audio."
 								}
@@ -1768,7 +1788,8 @@
 , 							{
 								"patchline" : 								{
 									"destination" : [ "obj-3", 0 ],
-									"midpoints" : [ 68.0, 536.0, 119.5, 536.0 ],
+									"midpoints" : [ 68.0, 543.0, 99.5, 543.0 ],
+									"order" : 1,
 									"source" : [ "obj-1", 1 ]
 								}
 
@@ -1779,6 +1800,15 @@
 									"midpoints" : [ 29.5, 688.0, 119.5, 688.0 ],
 									"order" : 0,
 									"source" : [ "obj-1", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-37", 0 ],
+									"midpoints" : [ 68.0, 544.0, 269.5, 544.0 ],
+									"order" : 0,
+									"source" : [ "obj-1", 1 ]
 								}
 
 							}
@@ -1895,7 +1925,7 @@
 								"patchline" : 								{
 									"destination" : [ "obj-1", 0 ],
 									"hidden" : 1,
-									"midpoints" : [ 309.5, 381.0, 29.5, 381.0 ],
+									"midpoints" : [ 419.5, 381.0, 29.5, 381.0 ],
 									"source" : [ "obj-34", 0 ]
 								}
 
@@ -1904,7 +1934,7 @@
 								"patchline" : 								{
 									"destination" : [ "obj-1", 0 ],
 									"hidden" : 1,
-									"midpoints" : [ 309.5, 381.0, 29.5, 381.0 ],
+									"midpoints" : [ 419.5, 381.0, 29.5, 381.0 ],
 									"source" : [ "obj-35", 0 ]
 								}
 
@@ -1995,7 +2025,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 10.0, 10.0, 190.016006469726563, 57.600002288818359 ]
+					"patching_rect" : [ 10.0, 10.0, 190.016006469726562, 57.600002288818359 ]
 				}
 
 			}
@@ -2010,7 +2040,7 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 6,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -2044,6 +2074,7 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"showontab" : 1,
+						"assistshowspatchername" : 0,
 						"boxes" : [  ],
 						"lines" : [  ]
 					}
@@ -2114,21 +2145,14 @@
 				"implicit" : 1
 			}
 , 			{
-				"name" : "MiniLogoBlack.png",
-				"bootpath" : "~/Dropbox/IMP/Logo",
-				"patcherrelativepath" : "../../../../../Dropbox/IMP/Logo",
-				"type" : "PNG",
-				"implicit" : 1
-			}
-, 			{
 				"name" : "helpstarter.js",
 				"bootpath" : "C74:/help/resources",
 				"type" : "TEXT",
 				"implicit" : 1
 			}
 , 			{
-				"name" : "jit.ndi.receive~.mxe64",
-				"type" : "mx64"
+				"name" : "jit.ndi.receive~.mxo",
+				"type" : "iLaX"
 			}
  ],
 		"autosave" : 0,

@@ -1523,14 +1523,14 @@ t_bool try_parse_bool(const char* c, t_bool* value)
 	const char FALSE_s[] = "FALSE";
 	const char zero_s[] = "0";
 
-	if (strncasecmp(c, one_s, sizeof(one_s) == 0) 
-		|| strncasecmp(c, TRUE_s, sizeof(TRUE_s) == 0))
+	if (strncasecmp(c, TRUE_s, sizeof(TRUE_s)) == 0
+		|| strncmp(c, one_s, sizeof(one_s)) == 0)
 	{
 		*value = TRUE;
 		return TRUE;
 	}
-	if (strncasecmp(c, FALSE_s, sizeof(FALSE_s) == 0)
-		|| strncasecmp(c, zero_s, sizeof(zero_s) == 0))
+	if (strncasecmp(c, FALSE_s, sizeof(FALSE_s)) == 0
+		|| strncmp(c, zero_s, sizeof(zero_s)) == 0)
 	{
 		*value = FALSE;
 		return TRUE;

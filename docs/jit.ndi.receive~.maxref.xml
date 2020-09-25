@@ -213,7 +213,7 @@
 	<!--RELATED-->
 
 	<seealsolist>
-		<seealso name='jit.ndi.receive~' />
+		<seealso name='jit.ndi.send~' />
 	</seealsolist>
 
 

@@ -4,7 +4,7 @@
 		"appversion" : 		{
 			"major" : 8,
 			"minor" : 1,
-			"revision" : 3,
+			"revision" : 6,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
@@ -39,6 +39,7 @@
 		"subpatcher_template" : "",
 		"showrootpatcherontab" : 0,
 		"showontab" : 0,
+		"assistshowspatchername" : 0,
 		"boxes" : [ 			{
 				"box" : 				{
 					"id" : "obj-3",
@@ -50,13 +51,13 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 6,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 427.0, 378.0, 687.0, 809.0 ],
+						"rect" : [ 0.0, 26.0, 687.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -84,6 +85,7 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"showontab" : 1,
+						"assistshowspatchername" : 0,
 						"boxes" : [ 							{
 								"box" : 								{
 									"id" : "obj-2",
@@ -161,7 +163,7 @@
 									"maxclass" : "newobj",
 									"numinlets" : 1,
 									"numoutlets" : 3,
-									"outlettype" : [ "", "bang", "" ],
+									"outlettype" : [ "jit_matrix", "bang", "" ],
 									"patching_rect" : [ 40.0, 200.0, 254.0, 22.0 ],
 									"text" : "jit.world @fps 30 @output_matrix 1 @visible 0"
 								}
@@ -390,7 +392,7 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 6,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -424,6 +426,7 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"showontab" : 1,
+						"assistshowspatchername" : 0,
 						"boxes" : [ 							{
 								"box" : 								{
 									"id" : "obj-12",
@@ -477,7 +480,7 @@
 										"appversion" : 										{
 											"major" : 8,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 6,
 											"architecture" : "x64",
 											"modernui" : 1
 										}
@@ -510,6 +513,7 @@
 										"tags" : "",
 										"style" : "",
 										"subpatcher_template" : "",
+										"assistshowspatchername" : 0,
 										"boxes" : [ 											{
 												"box" : 												{
 													"id" : "obj-7",
@@ -1080,7 +1084,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 360.0, 560.0, 100.0, 100.0 ],
+									"patching_rect" : [ 360.0, 560.0, 100.0, 98.0 ],
 									"text" : "Preset number followed by desired recall speed (0-1)"
 								}
 
@@ -1104,7 +1108,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 440.0, 460.0, 232.0, 75.0 ],
+									"patching_rect" : [ 440.0, 460.0, 232.0, 74.0 ],
 									"style" : "helpfile_label",
 									"text" : "The object has no internal mechanism for storing presets, however it will report any requests to recall/store presets via the below messages, and can be hooked up to Max's pattr system."
 								}
@@ -1181,7 +1185,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 250.0, 370.0, 412.0, 48.0 ],
+									"patching_rect" : [ 250.0, 370.0, 412.0, 47.0 ],
 									"style" : "helpfile_label",
 									"text" : "PTZ attributes can be set locally, but will be overriden by values sent from a NDI receiver. They are automatically sent from the dump outlet upon change. All attributes are of normalized range (either 0 to 1 or -1 to 1)."
 								}
@@ -1194,7 +1198,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 255.0, 250.0, 375.0, 34.0 ],
+									"patching_rect" : [ 255.0, 250.0, 375.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "This example shows a 'virtual PTZ' implementation by hooking up the pan, tilt and zoom attributes of jit.ndi.send~ to jit.gl.camera."
 								}
@@ -1207,7 +1211,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 99.0, 80.0, 514.0, 62.0 ],
+									"patching_rect" : [ 99.0, 80.0, 514.0, 60.0 ],
 									"style" : "helpfile_label",
 									"text" : "NDI sources can advertise themselves as PTZ devices to allow control data to be received from NDI receivers. Whilst this capability would usually be implemented by a hardware camera which has PTZ capability, jit.ndi.send~ can optionally receive this data into read-only ptz attributes to allow custom functionality to be implemented in a Max patch."
 								}
@@ -1363,7 +1367,7 @@
 									"maxclass" : "newobj",
 									"numinlets" : 1,
 									"numoutlets" : 3,
-									"outlettype" : [ "", "bang", "" ],
+									"outlettype" : [ "jit_matrix", "bang", "" ],
 									"patching_rect" : [ 10.0, 170.0, 254.0, 22.0 ],
 									"text" : "jit.world @fps 30 @output_matrix 1 @visible 0"
 								}
@@ -1719,7 +1723,7 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 6,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -1753,6 +1757,7 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"showontab" : 1,
+						"assistshowspatchername" : 0,
 						"boxes" : [ 							{
 								"box" : 								{
 									"bubble" : 1,
@@ -1831,7 +1836,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 280.0, 100.0, 358.0, 75.0 ],
+									"patching_rect" : [ 280.0, 100.0, 358.0, 74.0 ],
 									"style" : "helpfile_label",
 									"text" : "NDI video is sent over the network in the UYVY colorspace for reasons of efficiency. ARGB matrces will be internally converted, however if using UYVY in a patch this conversion can be avoided (and performance improved) by setting correct colormode on jit.ndi.send~."
 								}
@@ -1868,8 +1873,7 @@
 									"id" : "obj-1",
 									"maxclass" : "newobj",
 									"numinlets" : 1,
-									"numoutlets" : 1,
-									"outlettype" : [ "" ],
+									"numoutlets" : 0,
 									"patching_rect" : [ 20.0, 400.0, 180.0, 22.0 ],
 									"text" : "jit.ndi.send~ MaxNDIColorspace"
 								}
@@ -2128,13 +2132,13 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 6,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 687.0, 809.0 ],
+						"rect" : [ 427.0, 378.0, 687.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -2162,6 +2166,7 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"showontab" : 1,
+						"assistshowspatchername" : 0,
 						"boxes" : [ 							{
 								"box" : 								{
 									"hidden" : 1,
@@ -2171,8 +2176,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 500.0, 110.0, 116.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser https://ndi.tv/"
+									"patching_rect" : [ 500.0, 110.0, 116.0, 49.0 ],
+									"text" : ";\rmax launchbrowser https://ndi.tv/"
 								}
 
 							}
@@ -2203,8 +2208,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 290.0, 740.0, 160.0, 64.0 ],
-									"text" : ";\r\nmax launchbrowser https://www.theimpersonalstereo.com"
+									"patching_rect" : [ 80.0, 740.0, 160.0, 62.0 ],
+									"text" : ";\rmax launchbrowser https://www.theimpersonalstereo.com"
 								}
 
 							}
@@ -2217,8 +2222,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 80.0, 750.0, 210.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser https://www.davidbutlerdesign.co.uk"
+									"patching_rect" : [ 240.0, 740.0, 210.0, 49.0 ],
+									"text" : ";\rmax launchbrowser https://www.davidbutlerdesign.co.uk"
 								}
 
 							}
@@ -2283,7 +2288,7 @@
 									"numoutlets" : 0,
 									"patching_rect" : [ 80.0, 750.0, 310.0, 20.0 ],
 									"style" : "helpfile_label",
-									"text" : "jit.ndi v0.2.0 by David Butler / The Impersonal Stereo",
+									"text" : "jit.ndi v0.2.1 by David Butler / The Impersonal Stereo",
 									"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ]
 								}
 
@@ -2311,7 +2316,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 510.0, 640.0, 117.0, 85.0 ],
+									"patching_rect" : [ 510.0, 640.0, 117.0, 84.0 ],
 									"text" : "This bpatcher shows the tally state over a video source"
 								}
 
@@ -2335,7 +2340,7 @@
 										"appversion" : 										{
 											"major" : 8,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 6,
 											"architecture" : "x64",
 											"modernui" : 1
 										}
@@ -2368,6 +2373,7 @@
 										"tags" : "",
 										"style" : "",
 										"subpatcher_template" : "",
+										"assistshowspatchername" : 0,
 										"boxes" : [ 											{
 												"box" : 												{
 													"comment" : "Tally Messages",
@@ -2898,8 +2904,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 560.0, 660.0, 110.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser $1"
+									"patching_rect" : [ 560.0, 660.0, 110.0, 49.0 ],
+									"text" : ";\rmax launchbrowser $1"
 								}
 
 							}
@@ -2936,7 +2942,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 20.0, 254.0, 560.0, 34.0 ],
+									"patching_rect" : [ 20.0, 254.0, 560.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "This object requires Newtek NDI Runtime or Newtek NDI Tools to be installed in order to function. Please download from the link in the top right."
 								}
@@ -3002,8 +3008,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 340.0, 80.0, 150.0, 64.0 ],
-									"text" : ";\r\nmax launchbrowser https://www.newtek.com/ndi/tools/"
+									"patching_rect" : [ 340.0, 80.0, 150.0, 62.0 ],
+									"text" : ";\rmax launchbrowser https://www.newtek.com/ndi/tools/"
 								}
 
 							}
@@ -3014,7 +3020,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 396.0, 350.0, 279.0, 48.0 ],
+									"patching_rect" : [ 396.0, 350.0, 279.0, 47.0 ],
 									"style" : "helpfile_label",
 									"text" : "Open an NDI receiver on the local network (Studio Monitor is available as part of Newtek NDI Tools) and browse for the source name. "
 								}
@@ -3030,7 +3036,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 325.0, 652.0, 160.0, 55.0 ],
+									"patching_rect" : [ 325.0, 652.0, 160.0, 54.0 ],
 									"text" : "Tally status attributes are output via dump outlet when changed"
 								}
 
@@ -3045,7 +3051,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 295.0, 470.0, 153.0, 100.0 ],
+									"patching_rect" : [ 295.0, 470.0, 153.0, 98.0 ],
 									"text" : "Video is sent at a fixed framerate which is not connected to the rate at which matrix messages are sent to the object."
 								}
 
@@ -3075,7 +3081,7 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 200.0, 580.0, 171.1455078125, 39.0 ]
+									"patching_rect" : [ 200.0, 580.0, 170.313491821289062, 39.0 ]
 								}
 
 							}
@@ -3114,7 +3120,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 396.0, 304.0, 210.0, 34.0 ],
+									"patching_rect" : [ 396.0, 304.0, 210.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "Switch audio processing on to send audio."
 								}
@@ -3139,7 +3145,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 210.0, 380.0, 126.0, 34.0 ],
+									"patching_rect" : [ 210.0, 380.0, 126.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "Start a movie playing as a test source"
 								}
@@ -3590,7 +3596,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 10.0, 10.0, 190.016006469726563, 57.600002288818359 ]
+					"patching_rect" : [ 10.0, 10.0, 190.016006469726562, 57.600002288818359 ]
 				}
 
 			}
@@ -3605,7 +3611,7 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 6,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -3639,6 +3645,7 @@
 						"style" : "",
 						"subpatcher_template" : "",
 						"showontab" : 1,
+						"assistshowspatchername" : 0,
 						"boxes" : [  ],
 						"lines" : [  ]
 					}
@@ -3709,25 +3716,14 @@
 				"implicit" : 1
 			}
 , 			{
-				"name" : "MiniLogoBlack.png",
-				"bootpath" : "~/Dropbox/IMP/Logo",
-				"patcherrelativepath" : "../../../../../Dropbox/IMP/Logo",
-				"type" : "PNG",
-				"implicit" : 1
-			}
-, 			{
 				"name" : "helpstarter.js",
 				"bootpath" : "C74:/help/resources",
 				"type" : "TEXT",
 				"implicit" : 1
 			}
 , 			{
-				"name" : "jit.ndi.send~.mxe64",
-				"type" : "mx64"
-			}
-, 			{
-				"name" : "jit.movie~.mxe64",
-				"type" : "mx64"
+				"name" : "jit.movie~.mxo",
+				"type" : "iLaX"
 			}
  ],
 		"autosave" : 0,
