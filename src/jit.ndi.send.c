@@ -1,6 +1,6 @@
 //
-// This file is part of jit.ndi https://github.com/impsnldavid/jit.ndi
-// Copyright (c) 2018 David Butler / The Impersonal Stereo
+// This file is part of jit.ndi https://github.com/pixsperdavid/jit.ndi
+// Copyright (c) 2021 Pixsper Ltd.
 // 
 // This program is free software: you can redistribute it and/or modify  
 // it under the terms of the GNU Lesser General Public License as 
@@ -34,7 +34,7 @@
 #define YXML_BUFSIZE 4096
 #define YXML_MAX_ATTR_VALUE_LENGTH 32
 
-extern NDIlib_v4* ndiLib;
+extern NDIlib_v5* ndiLib;
 
 typedef enum _ColorMode
 {

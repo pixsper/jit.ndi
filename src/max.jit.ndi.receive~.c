@@ -1,7 +1,6 @@
-
 //
-// This file is part of jit.ndi https://github.com/impsnldavid/jit.ndi
-// Copyright (c) 2018 David Butler / The Impersonal Stereo
+// This file is part of jit.ndi https://github.com/pixsperdavid/jit.ndi
+// Copyright (c) 2021 Pixsper Ltd.
 // 
 // This program is free software: you can redistribute it and/or modify  
 // it under the terms of the GNU Lesser General Public License as 
@@ -15,7 +14,6 @@
 // You should have received a copy of the GNU Lesser General Public 
 // License along with this program. 
 // If not, see <http://www.gnu.org/licenses/>.
-
 
 #include <jit.common.h>
 #include <ext_atomic.h>
@@ -33,7 +31,7 @@
 #endif
 
 void* ndiLibHandle;
-NDIlib_v4* ndiLib;
+NDIlib_v5* ndiLib;
 
 typedef enum _WhiteBalanceMode
 {

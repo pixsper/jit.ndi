@@ -1,6 +1,6 @@
 //
-// This file is part of jit.ndi https://github.com/impsnldavid/jit.ndi
-// Copyright (c) 2018 David Butler / The Impersonal Stereo
+// This file is part of jit.ndi https://github.com/pixsperdavid/jit.ndi
+// Copyright (c) 2021 Pixsper Ltd.
 // 
 // This program is free software: you can redistribute it and/or modify  
 // it under the terms of the GNU Lesser General Public License as 
@@ -34,7 +34,7 @@ inline void free_ndi_runtime(void** ndiLibHandle)
 	}
 }
 
-inline bool load_ndi_runtime(NDIlib_v4** ndiLib, void** ndiLibHandle)
+inline bool load_ndi_runtime(NDIlib_v5** ndiLib, void** ndiLibHandle)
 {
 	*ndiLib = NULL;
 	*ndiLibHandle = NULL;
@@ -65,7 +65,7 @@ inline bool load_ndi_runtime(NDIlib_v4** ndiLib, void** ndiLibHandle)
 	*ndiLibHandle = runtimeModule;
 	quittask_install((method)free_ndi_runtime, ndiLibHandle);
 
-	const FARPROC loadFunction = GetProcAddress(runtimeModule, "NDIlib_v4_load");
+	const FARPROC loadFunction = GetProcAddress(runtimeModule, "NDIlib_v5_load");
 	
 	if (loadFunction == NULL)
 	{
@@ -73,7 +73,7 @@ inline bool load_ndi_runtime(NDIlib_v4** ndiLib, void** ndiLibHandle)
 		return false;
 	}
 	
-	*ndiLib = (NDIlib_v4*)loadFunction();
+	*ndiLib = (NDIlib_v5*)loadFunction();
 	
 	return true;
 }
@@ -93,7 +93,7 @@ void free_ndi_runtime(void** ndiLibHandle)
     }
 }
 
-bool load_ndi_runtime(NDIlib_v4** ndiLib, void** ndiLibHandle)
+bool load_ndi_runtime(NDIlib_v5** ndiLib, void** ndiLibHandle)
 {
 	*ndiLib = NULL;
 	*ndiLibHandle = NULL;
@@ -124,17 +124,17 @@ bool load_ndi_runtime(NDIlib_v4** ndiLib, void** ndiLibHandle)
 	*ndiLibHandle = runtimeHandle;
     quittask_install((method)free_ndi_runtime, ndiLibHandle);
         
-    const NDIlib_v4* (*NDIlib_v4_load)(void) = NULL;
+    const NDIlib_v5* (*NDIlib_v5_load)(void) = NULL;
     
     dlerror();
-    *((void**)&NDIlib_v4_load) = dlsym(runtimeHandle, "NDIlib_v4_load");
-	if (!NDIlib_v4_load)
+    *((void**)&NDIlib_v5_load) = dlsym(runtimeHandle, "NDIlib_v5_load");
+	if (!NDIlib_v5_load)
 	{
 		error("Unable to load NDI runtime library - '%s'. Please download and/or reinstall NDI runtime from '%s' and restart Max", dlerror(), NDILIB_REDIST_URL);
 		return false;
 	}
 	
-	*ndiLib = (NDIlib_v4*)NDIlib_v4_load();
+	*ndiLib = (NDIlib_v5*)NDIlib_v5_load();
 	
 	return true;
 }

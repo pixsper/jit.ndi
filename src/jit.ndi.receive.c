@@ -1,6 +1,6 @@
 //
-// This file is part of jit.ndi https://github.com/impsnldavid/jit.ndi
-// Copyright (c) 2018 David Butler / The Impersonal Stereo
+// This file is part of jit.ndi https://github.com/pixsperdavid/jit.ndi
+// Copyright (c) 2021 Pixsper Ltd.
 // 
 // This program is free software: you can redistribute it and/or modify  
 // it under the terms of the GNU Lesser General Public License as 
@@ -24,7 +24,7 @@
 #define DEFAULT_INTERNAL_MATRIX_WIDTH 1920
 #define DEFAULT_INTERNAL_MATRIX_HEIGHT 1080
 
-extern NDIlib_v4* ndiLib;
+extern NDIlib_v5* ndiLib;
 
 typedef enum _ColorMode
 {
@@ -56,7 +56,7 @@ typedef struct _jit_ndi_receive
 	t_jit_object* matrix;
 	int matrixWidth;
 	int matrixHeight;
-	NDIlib_FourCC_type_e lastFourCCType;
+	NDIlib_FourCC_video_type_e lastFourCCType;
 
 	double samplerate;
 
