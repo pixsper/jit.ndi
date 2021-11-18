@@ -20,6 +20,7 @@
 #include <z_dsp.h>
 #include <max.jit.mop.h>
 #include <ext_dictobj.h>
+#include <commonsyms.h>
 
 #include <Processing.NDI.Lib.h>
 

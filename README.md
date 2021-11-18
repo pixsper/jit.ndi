@@ -22,7 +22,7 @@ The [NewTek NDI®](https://ndi.tv/) protocol allows high-quality, high-performan
 jit.ndi is licensed under LGPL 3.0. This means you are free to use the objects in any commercial/non-commercial project but any changes to the source code must be released under the same license.
 
 ## Installation
-- jit.ndi is supplied as a Max package. Download available from the [releases](https://github.com/impsnldavid/jit.ndi/releases/latest) page.
+- jit.ndi is supplied as a Max package. Download available from the [releases](https://github.com/pixsper/jit.ndi/releases/latest) page.
 - Unzip and place the entire jit.ndi directory in your Max packages directory (`C:/Users/[username]/Documents/Max 8/Packages` on Windows, `/Users/[username]/Documents/Max 8/Packages` on Mac OS).
 
 ## Documentation

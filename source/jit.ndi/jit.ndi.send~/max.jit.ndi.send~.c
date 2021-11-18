@@ -19,6 +19,7 @@
 #include <ext_atomic.h>
 #include <z_dsp.h>
 #include <max.jit.mop.h>
+#include <commonsyms.h>
 
 #include <Processing.NDI.Lib.h>
 
@@ -284,13 +285,6 @@ void max_jit_ndi_send_printversion(t_max_jit_ndi_send* x)
 void max_jit_ndi_send_getruntimeurl(t_max_jit_ndi_send* x)
 {
 	t_atom argv;
-
-// TODO: Update this when NewTek fixes their link to the Mac runtime
-#ifdef MAC_VERSION
-	atom_setsym(&argv, gensym("https://ndi.tv/tools/"));
-#else
 	atom_setsym(&argv, gensym(NDILIB_REDIST_URL));
-#endif
-	
 	max_jit_obex_dumpout(x, _sym_runtimeurl, 1, &argv);
 }

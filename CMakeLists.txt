@@ -9,6 +9,9 @@ if (APPLE)
         elseif(${XCODE_VERSION} VERSION_GREATER_EQUAL 12)
             set(C74_BUILD_FAT YES)
         endif ()
+    elseif (${CMAKE_GENERATOR} MATCHES "Unix Makefiles")
+        # This is for the benefit of CLion which identifies as Unix Makefiles
+        set(C74_BUILD_FAT YES)
     endif ()
 
     if (NOT CMAKE_OSX_ARCHITECTURES)

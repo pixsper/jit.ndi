@@ -10,6 +10,7 @@ include_directories(
 set(PROJECT_SRC
 		"jit.ndi.receive.c"
 		"max.jit.ndi.receive~.c"
+		"${MAX_SDK_INCLUDES}/common/commonsyms.c"
 )
 
 add_library(
