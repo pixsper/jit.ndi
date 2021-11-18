@@ -23,7 +23,7 @@
 #include <Processing.NDI.Lib.h>
 
 #include "ndi_runtime.h"
-#include "../version.h"
+#include "version.h"
 
 
 

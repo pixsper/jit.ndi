@@ -23,8 +23,8 @@
 
 #include <Processing.NDI.Lib.h>
 
-#include "../ndi_runtime.h"
-#include "../version.h"
+#include "ndi_runtime.h"
+#include "version.h"
 
 #ifdef MAC_VERSION
 #include <sys/param.h>

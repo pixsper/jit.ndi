@@ -521,7 +521,7 @@ t_jit_err jit_ndi_receive_matrix_calc(t_jit_ndi_receive* x, void* inputs, void* 
 		convInfo.dstdimend[0] = info.dim[0];
 		convInfo.dstdimend[1] = info.dim[1];
 
-		err = jit_object_method(outputMatrix, _jit_sym_frommatrix, x->matrix, &convInfo);
+		err = (t_jit_err)jit_object_method(outputMatrix, _jit_sym_frommatrix, x->matrix, &convInfo);
 	}
 	else
 	{
@@ -703,17 +703,30 @@ void jit_ndi_receive_get_samples(t_jit_ndi_receive* x, double** outs, long sampl
 	NDIlib_audio_frame_v2_t audioFrame = { 0 };
 	ndiLib->framesync_capture_audio(x->ndiFrameSync, &audioFrame, x->samplerate, x->attrNumAudioChannels, sampleFrames);
 
-	assert(audioFrame.no_channels == x->attrNumAudioChannels);
-	assert(audioFrame.no_samples == sampleFrames);
+    if (audioFrame.p_data)
+    {
+        assert(audioFrame.no_channels == x->attrNumAudioChannels);
+        assert(audioFrame.no_samples == sampleFrames);
 
-	for(int i = 0; i < x->attrNumAudioChannels; ++i)
-	{
-		double* dst = outs[i];
-		float* src = audioFrame.p_data + ((audioFrame.channel_stride_in_bytes / sizeof(float)) * i);
+        for(int i = 0; i < x->attrNumAudioChannels; ++i)
+        {
+            double* dst = outs[i];
+            float* src = audioFrame.p_data + ((audioFrame.channel_stride_in_bytes / sizeof(float)) * i);
 
-		for(int j = 0; j < sampleFrames; ++j)
-			*dst++ = *src++;
-	}
+            for(int j = 0; j < sampleFrames; ++j)
+                *dst++ = *src++;
+        }
+    }
+    else
+    {
+        for(int i = 0; i < x->attrNumAudioChannels; ++i)
+        {
+            double* dst = outs[i];
+
+            for(int j = 0; j < sampleFrames; ++j)
+                *dst++ = 0;
+        }
+    }
 
 	ndiLib->framesync_free_audio(x->ndiFrameSync, &audioFrame);
 }
