@@ -23,11 +23,12 @@
 
 #include <Processing.NDI.Lib.h>
 
-#include "ndi_runtime.h"
-#include "build/version.h"
+#include "../ndi_runtime.h"
+#include "../version.h"
 
 #ifdef MAC_VERSION
 #include <sys/param.h>
+#include <unistd.h>
 #endif
 
 void* ndiLibHandle;
