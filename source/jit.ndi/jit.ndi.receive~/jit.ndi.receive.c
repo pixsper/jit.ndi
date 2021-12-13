@@ -296,7 +296,7 @@ t_jit_err jit_ndi_receive_init()
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_zoom_speed", _jit_sym_float32, attrflags, 
 		(method)0L, (method)jit_ndi_receive_setattr_ptz_zoom_speed, calcoffset(t_jit_ndi_receive, attrPtzZoomSpeed));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
+	attr_addfilter_clip(attr, -1, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Zoom Speed\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
