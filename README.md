@@ -1,4 +1,4 @@
-<img alt="LXMax" src="https://raw.githubusercontent.com/impsnldavid/jit.ndi/develop/icon.png" width="200" height="200">
+<img alt="jit.ndi" src="https://raw.githubusercontent.com/pixsper/jit.ndi/develop/icon.png" width="200" height="200">
 
 Extensions for sending/receiving video and audio using the [Newtek NDI®](https://ndi.tv/) protocol in [Cycling 74's Max](https://cycling74.com/products/max/)
 
@@ -29,7 +29,7 @@ jit.ndi is licensed under LGPL 3.0. This means you are free to use the objects i
 Help patchers and Max documentation metadata included in the package.
 
 ## Copyright
-jit.ndi Copyright (C) 2021 Pixsper Ltd.
+jit.ndi Copyright (C) 2022 Pixsper Ltd.
 www.pixsper.com
 
 NDI® is a registered trademark of NewTek, Inc  
