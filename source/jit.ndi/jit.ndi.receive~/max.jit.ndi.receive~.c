@@ -1,6 +1,6 @@
 //
-// This file is part of jit.ndi https://github.com/pixsperdavid/jit.ndi
-// Copyright (c) 2021 Pixsper Ltd.
+// This file is part of jit.ndi https://github.com/pixsper/jit.ndi
+// Copyright (c) 2022 Pixsper Ltd.
 // 
 // This program is free software: you can redistribute it and/or modify  
 // it under the terms of the GNU Lesser General Public License as 
