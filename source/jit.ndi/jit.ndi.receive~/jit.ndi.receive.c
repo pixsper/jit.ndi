@@ -296,7 +296,7 @@ t_jit_err jit_ndi_receive_init()
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_zoom_speed", _jit_sym_float32, attrflags, 
 		(method)0L, (method)jit_ndi_receive_setattr_ptz_zoom_speed, calcoffset(t_jit_ndi_receive, attrPtzZoomSpeed));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
+	attr_addfilter_clip(attr, -1, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Zoom Speed\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "2");
@@ -320,16 +320,6 @@ t_jit_err jit_ndi_receive_init()
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "4");
 	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");
 
-	// TODO: Not exposed by NDILib API yet
-	/*attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_flip", _jit_sym_char, attrflags, 
-		(method)0L, (method)0L, calcoffset(t_jit_ndi_receive, attrPtzFlip));
-	jit_class_addattr(_jit_ndi_receive_class, attr);
-	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Flip\"");
-	object_addattr_parse(attr, "style",_jit_sym_symbol, 0, "onoff");
-	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
-	object_addattr_parse(attr, "order",_jit_sym_long, 0, "5");
-	object_addattr_parse(attr, "disabled", _jit_sym_long, 0, "1");*/
-
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_autofocus", _jit_sym_char, attrflags, 
 		(method)0L, (method)jit_ndi_receive_setattr_ptz_autofocus, calcoffset(t_jit_ndi_receive, attrPtzAutoFocus));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
@@ -351,7 +341,7 @@ t_jit_err jit_ndi_receive_init()
 	attr = jit_object_new(_jit_sym_jit_attr_offset, "ptz_focus_speed", _jit_sym_float32, attrflags, 
 		(method)0L, (method)jit_ndi_receive_setattr_ptz_focus_speed, calcoffset(t_jit_ndi_receive, attrPtzFocusSpeed));
 	jit_class_addattr(_jit_ndi_receive_class, attr);
-	attr_addfilter_clip(attr, 0, 1, TRUE, TRUE);
+	attr_addfilter_clip(attr, -1, 1, TRUE, TRUE);
 	object_addattr_parse(attr, "label",_jit_sym_symbol, 0, "\"Focus Speed\"");
 	object_addattr_parse(attr, "category",_jit_sym_symbol, 0, "\"PTZ Controls\"");
 	object_addattr_parse(attr, "order",_jit_sym_long, 0, "8");
@@ -1155,7 +1145,7 @@ t_jit_err jit_ndi_receive_setattr_ptz_exposure(t_jit_ndi_receive *x, void *attr,
 	if (x->ndiReceiver && x->attrPtzCapable)
 	{
 		if (!x->attrPtzAutoExposure)
-			ndiLib->recv_ptz_focus(x->ndiReceiver, x->attrPtzExposure);
+			ndiLib->recv_ptz_exposure_manual(x->ndiReceiver, x->attrPtzExposure);
 	}
 
 	return JIT_ERR_NONE;
