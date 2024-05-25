@@ -3,14 +3,14 @@
 		"fileversion" : 1,
 		"appversion" : 		{
 			"major" : 8,
-			"minor" : 1,
-			"revision" : 11,
+			"minor" : 6,
+			"revision" : 2,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 1188.0, 337.0, 687.0, 835.0 ],
+		"rect" : [ 598.0, 312.0, 730.0, 835.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -50,14 +50,14 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 8,
-							"minor" : 1,
-							"revision" : 11,
+							"minor" : 6,
+							"revision" : 2,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 687.0, 809.0 ],
+						"rect" : [ 0.0, 26.0, 730.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -117,7 +117,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
-									"patching_rect" : [ 80.0, 360.0, 160.0, 120.0 ]
+									"patching_rect" : [ 80.0, 360.0, 160.0, 120.0 ],
+									"sync" : 1
 								}
 
 							}
@@ -351,13 +352,13 @@
 								"name" : "AudioStatus_Menu",
 								"default" : 								{
 									"bgfillcolor" : 									{
-										"type" : "color",
+										"angle" : 270.0,
+										"autogradient" : 0,
 										"color" : [ 0.294118, 0.313726, 0.337255, 1 ],
 										"color1" : [ 0.454902, 0.462745, 0.482353, 0.0 ],
 										"color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-										"angle" : 270.0,
 										"proportion" : 0.39,
-										"autogradient" : 0
+										"type" : "color"
 									}
 
 								}
@@ -391,14 +392,14 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 8,
-							"minor" : 1,
-							"revision" : 11,
+							"minor" : 6,
+							"revision" : 2,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 687.0, 809.0 ],
+						"rect" : [ 0.0, 26.0, 730.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -479,8 +480,8 @@
 										"fileversion" : 1,
 										"appversion" : 										{
 											"major" : 8,
-											"minor" : 1,
-											"revision" : 11,
+											"minor" : 6,
+											"revision" : 2,
 											"architecture" : "x64",
 											"modernui" : 1
 										}
@@ -1084,7 +1085,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 360.0, 560.0, 100.0, 100.0 ],
+									"patching_rect" : [ 360.0, 560.0, 100.0, 98.0 ],
 									"text" : "Preset number followed by desired recall speed (0-1)"
 								}
 
@@ -1108,7 +1109,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 440.0, 460.0, 232.0, 75.0 ],
+									"patching_rect" : [ 440.0, 460.0, 232.0, 74.0 ],
 									"style" : "helpfile_label",
 									"text" : "The object has no internal mechanism for storing presets, however it will report any requests to recall/store presets via the below messages, and can be hooked up to Max's pattr system."
 								}
@@ -1135,6 +1136,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 232.0, 330.0, 248.0, 22.0 ]
 								}
 
@@ -1148,6 +1150,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 232.0, 300.0, 248.0, 22.0 ]
 								}
 
@@ -1161,6 +1164,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 490.0, 330.0, 170.0, 22.0 ]
 								}
 
@@ -1174,6 +1178,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 490.0, 300.0, 170.0, 22.0 ]
 								}
 
@@ -1185,7 +1190,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 250.0, 370.0, 412.0, 48.0 ],
+									"patching_rect" : [ 250.0, 370.0, 412.0, 47.0 ],
 									"style" : "helpfile_label",
 									"text" : "PTZ attributes can be set locally, but will be overriden by values sent from a NDI receiver. They are automatically sent from the dump outlet upon change. All attributes are of normalized range (either 0 to 1 or -1 to 1)."
 								}
@@ -1198,7 +1203,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 255.0, 250.0, 375.0, 34.0 ],
+									"patching_rect" : [ 255.0, 250.0, 375.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "This example shows a 'virtual PTZ' implementation by hooking up the pan, tilt and zoom attributes of jit.ndi.send~ to jit.gl.camera."
 								}
@@ -1211,7 +1216,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 99.0, 80.0, 514.0, 62.0 ],
+									"patching_rect" : [ 99.0, 80.0, 514.0, 60.0 ],
 									"style" : "helpfile_label",
 									"text" : "NDI sources can advertise themselves as PTZ devices to allow control data to be received from NDI receivers. Whilst this capability would usually be implemented by a hardware camera which has PTZ capability, jit.ndi.send~ can optionally receive this data into read-only ptz attributes to allow custom functionality to be implemented in a Max patch."
 								}
@@ -1331,7 +1336,7 @@
 									"maxclass" : "newobj",
 									"numinlets" : 1,
 									"numoutlets" : 2,
-									"outlettype" : [ "jit_matrix", "" ],
+									"outlettype" : [ "", "" ],
 									"patching_rect" : [ 360.0, 210.0, 71.0, 22.0 ],
 									"text" : "jit.gl.skybox"
 								}
@@ -1380,7 +1385,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
-									"patching_rect" : [ 41.0, 260.0, 160.0, 120.0 ]
+									"patching_rect" : [ 41.0, 260.0, 160.0, 120.0 ],
+									"sync" : 1
 								}
 
 							}
@@ -1682,13 +1688,13 @@
 								"name" : "AudioStatus_Menu",
 								"default" : 								{
 									"bgfillcolor" : 									{
-										"type" : "color",
+										"angle" : 270.0,
+										"autogradient" : 0,
 										"color" : [ 0.294118, 0.313726, 0.337255, 1 ],
 										"color1" : [ 0.454902, 0.462745, 0.482353, 0.0 ],
 										"color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-										"angle" : 270.0,
 										"proportion" : 0.39,
-										"autogradient" : 0
+										"type" : "color"
 									}
 
 								}
@@ -1722,14 +1728,14 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 8,
-							"minor" : 1,
-							"revision" : 11,
+							"minor" : 6,
+							"revision" : 2,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 687.0, 809.0 ],
+						"rect" : [ 0.0, 26.0, 730.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -1798,7 +1804,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
-									"patching_rect" : [ 470.0, 310.0, 160.0, 120.0 ]
+									"patching_rect" : [ 470.0, 310.0, 160.0, 120.0 ],
+									"sync" : 1
 								}
 
 							}
@@ -1809,7 +1816,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
-									"patching_rect" : [ 300.0, 310.0, 160.0, 120.0 ]
+									"patching_rect" : [ 300.0, 310.0, 160.0, 120.0 ],
+									"sync" : 1
 								}
 
 							}
@@ -1836,7 +1844,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 280.0, 100.0, 358.0, 75.0 ],
+									"patching_rect" : [ 280.0, 100.0, 358.0, 74.0 ],
 									"style" : "helpfile_label",
 									"text" : "NDI video is sent over the network in the UYVY colorspace for reasons of efficiency. ARGB matrces will be internally converted, however if using UYVY in a patch this conversion can be avoided (and performance improved) by setting correct colormode on jit.ndi.send~."
 								}
@@ -1851,6 +1859,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 70.0, 350.0, 180.0, 22.0 ]
 								}
 
@@ -1864,6 +1873,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 70.0, 210.0, 180.0, 22.0 ]
 								}
 
@@ -2058,13 +2068,13 @@
 								"name" : "AudioStatus_Menu",
 								"default" : 								{
 									"bgfillcolor" : 									{
-										"type" : "color",
+										"angle" : 270.0,
+										"autogradient" : 0,
 										"color" : [ 0.294118, 0.313726, 0.337255, 1 ],
 										"color1" : [ 0.454902, 0.462745, 0.482353, 0.0 ],
 										"color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-										"angle" : 270.0,
 										"proportion" : 0.39,
-										"autogradient" : 0
+										"type" : "color"
 									}
 
 								}
@@ -2132,14 +2142,14 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 8,
-							"minor" : 1,
-							"revision" : 11,
+							"minor" : 6,
+							"revision" : 2,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 1188.0, 363.0, 687.0, 809.0 ],
+						"rect" : [ 598.0, 338.0, 730.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -2211,7 +2221,7 @@
 									"numoutlets" : 0,
 									"patching_rect" : [ 169.0, 740.0, 310.0, 20.0 ],
 									"style" : "helpfile_label",
-									"text" : "jit.ndi v0.3.0 by David Butler / Pixsper Ltd.",
+									"text" : "jit.ndi v0.4.0 by David Butler / Pixsper Ltd.",
 									"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ]
 								}
 
@@ -2225,8 +2235,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 500.0, 110.0, 116.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser https://ndi.tv/"
+									"patching_rect" : [ 580.0, 110.0, 116.0, 49.0 ],
+									"text" : ";\rmax launchbrowser https://ndi.video/"
 								}
 
 							}
@@ -2240,8 +2250,8 @@
 									"numoutlets" : 3,
 									"outlettype" : [ "", "", "int" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 490.0, 57.0, 110.0, 16.0 ],
-									"text" : "ndi.tv",
+									"patching_rect" : [ 580.0, 57.0, 110.0, 16.0 ],
+									"text" : "ndi.video",
 									"textjustification" : 0,
 									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
 									"underline" : 1
@@ -2271,7 +2281,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 510.0, 640.0, 117.0, 85.0 ],
+									"patching_rect" : [ 510.0, 640.0, 117.0, 84.0 ],
 									"text" : "This bpatcher shows the tally state over a video source"
 								}
 
@@ -2286,6 +2296,7 @@
 									"enablevscroll" : 0,
 									"id" : "obj-15",
 									"lockeddragscroll" : 0,
+									"lockedsize" : 0,
 									"maxclass" : "bpatcher",
 									"numinlets" : 2,
 									"numoutlets" : 0,
@@ -2294,8 +2305,8 @@
 										"fileversion" : 1,
 										"appversion" : 										{
 											"major" : 8,
-											"minor" : 1,
-											"revision" : 11,
+											"minor" : 6,
+											"revision" : 2,
 											"architecture" : "x64",
 											"modernui" : 1
 										}
@@ -2641,7 +2652,8 @@
 													"outlettype" : [ "jit_matrix", "" ],
 													"patching_rect" : [ 10.0, 330.0, 160.0, 120.0 ],
 													"presentation" : 1,
-													"presentation_rect" : [ 0.0, 0.0, 160.0, 120.0 ]
+													"presentation_rect" : [ 0.0, 0.0, 160.0, 120.0 ],
+													"sync" : 1
 												}
 
 											}
@@ -2859,8 +2871,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 560.0, 660.0, 110.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser $1"
+									"patching_rect" : [ 560.0, 660.0, 110.0, 49.0 ],
+									"text" : ";\rmax launchbrowser $1"
 								}
 
 							}
@@ -2897,9 +2909,9 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 20.0, 254.0, 560.0, 34.0 ],
+									"patching_rect" : [ 20.0, 254.0, 540.0, 33.0 ],
 									"style" : "helpfile_label",
-									"text" : "This object requires Newtek NDI Runtime or Newtek NDI Tools to be installed in order to function. Please download from the link in the top right."
+									"text" : "This object requires NDI Runtime or NDI Tools to be installed in order to function. Please download from the link in the top right."
 								}
 
 							}
@@ -2928,8 +2940,8 @@
 									"numoutlets" : 3,
 									"outlettype" : [ "", "", "int" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 490.0, 10.0, 180.0, 20.0 ],
-									"text" : "Download NewTek NDI Runtime",
+									"patching_rect" : [ 580.0, 10.0, 140.0, 20.0 ],
+									"text" : "Download NDI Runtime",
 									"textjustification" : 0,
 									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
 									"underline" : 1
@@ -2946,8 +2958,8 @@
 									"numoutlets" : 3,
 									"outlettype" : [ "", "", "int" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 490.0, 34.0, 110.0, 16.0 ],
-									"text" : "NewTek NDI Tools",
+									"patching_rect" : [ 580.0, 34.0, 110.0, 16.0 ],
+									"text" : "NDI Tools",
 									"textjustification" : 0,
 									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
 									"underline" : 1
@@ -2963,8 +2975,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 340.0, 80.0, 213.0, 36.0 ],
-									"text" : ";\r\nmax launchbrowser https://ndi.tv/tools/"
+									"patching_rect" : [ 340.0, 80.0, 232.0, 35.0 ],
+									"text" : ";\rmax launchbrowser https://ndi.video/tools/"
 								}
 
 							}
@@ -2975,7 +2987,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 396.0, 350.0, 279.0, 48.0 ],
+									"patching_rect" : [ 396.0, 350.0, 279.0, 47.0 ],
 									"style" : "helpfile_label",
 									"text" : "Open an NDI receiver on the local network (Studio Monitor is available as part of Newtek NDI Tools) and browse for the source name. "
 								}
@@ -2991,7 +3003,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 325.0, 652.0, 160.0, 55.0 ],
+									"patching_rect" : [ 325.0, 652.0, 160.0, 54.0 ],
 									"text" : "Tally status attributes are output via dump outlet when changed"
 								}
 
@@ -3006,7 +3018,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 295.0, 470.0, 153.0, 100.0 ],
+									"patching_rect" : [ 295.0, 470.0, 153.0, 98.0 ],
 									"text" : "Video is sent at a fixed framerate which is not connected to the rate at which matrix messages are sent to the object."
 								}
 
@@ -3020,6 +3032,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 130.0, 510.0, 160.0, 22.0 ]
 								}
 
@@ -3036,7 +3049,7 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 200.0, 580.0, 171.6719970703125, 39.0 ]
+									"patching_rect" : [ 200.0, 580.0, 171.463973999023438, 39.0 ]
 								}
 
 							}
@@ -3075,7 +3088,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 396.0, 304.0, 210.0, 34.0 ],
+									"patching_rect" : [ 396.0, 304.0, 210.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "Switch audio processing on to send audio."
 								}
@@ -3100,7 +3113,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 210.0, 380.0, 126.0, 34.0 ],
+									"patching_rect" : [ 210.0, 380.0, 126.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "Start a movie playing as a test source"
 								}
@@ -3493,13 +3506,13 @@
 								"name" : "AudioStatus_Menu",
 								"default" : 								{
 									"bgfillcolor" : 									{
-										"type" : "color",
+										"angle" : 270.0,
+										"autogradient" : 0,
 										"color" : [ 0.294118, 0.313726, 0.337255, 1 ],
 										"color1" : [ 0.454902, 0.462745, 0.482353, 0.0 ],
 										"color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-										"angle" : 270.0,
 										"proportion" : 0.39,
-										"autogradient" : 0
+										"type" : "color"
 									}
 
 								}
@@ -3535,7 +3548,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 10.0, 10.0, 190.016006469726563, 57.600002288818359 ]
+					"patching_rect" : [ 10.0, 10.0, 190.016006469726562, 57.600002288818359 ]
 				}
 
 			}
@@ -3549,14 +3562,14 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 8,
-							"minor" : 1,
-							"revision" : 11,
+							"minor" : 6,
+							"revision" : 2,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 687.0, 809.0 ],
+						"rect" : [ 0.0, 26.0, 730.0, 809.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -3637,7 +3650,7 @@
  ],
 		"lines" : [  ],
 		"dependency_cache" : [ 			{
-				"name" : "helpname.js",
+				"name" : "helpargs.js",
 				"bootpath" : "C74:/help/resources",
 				"type" : "TEXT",
 				"implicit" : 1
@@ -3649,16 +3662,9 @@
 				"implicit" : 1
 			}
 , 			{
-				"name" : "helpargs.js",
+				"name" : "helpname.js",
 				"bootpath" : "C74:/help/resources",
 				"type" : "TEXT",
-				"implicit" : 1
-			}
-, 			{
-				"name" : "Logo_Google.png",
-				"bootpath" : "~/Dropbox/Pixsper/Branding",
-				"patcherrelativepath" : "../../../../../Dropbox/Pixsper/Branding",
-				"type" : "PNG",
 				"implicit" : 1
 			}
 , 			{
@@ -3668,12 +3674,8 @@
 				"implicit" : 1
 			}
 , 			{
-				"name" : "jit.ndi.send~.mxe64",
-				"type" : "mx64"
-			}
-, 			{
-				"name" : "jit.movie~.mxe64",
-				"type" : "mx64"
+				"name" : "jit.ndi.send~.mxo",
+				"type" : "iLaX"
 			}
  ],
 		"autosave" : 0,
@@ -3681,13 +3683,13 @@
 				"name" : "AudioStatus_Menu",
 				"default" : 				{
 					"bgfillcolor" : 					{
-						"type" : "color",
+						"angle" : 270.0,
+						"autogradient" : 0,
 						"color" : [ 0.294118, 0.313726, 0.337255, 1 ],
 						"color1" : [ 0.454902, 0.462745, 0.482353, 0.0 ],
 						"color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-						"angle" : 270.0,
 						"proportion" : 0.39,
-						"autogradient" : 0
+						"type" : "color"
 					}
 
 				}

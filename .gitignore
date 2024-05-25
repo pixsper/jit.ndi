@@ -12,3 +12,4 @@ _deps
 build
 externals
 .idea
+.DS_Store
