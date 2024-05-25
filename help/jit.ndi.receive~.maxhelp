@@ -3,8 +3,8 @@
 		"fileversion" : 1,
 		"appversion" : 		{
 			"major" : 8,
-			"minor" : 1,
-			"revision" : 11,
+			"minor" : 6,
+			"revision" : 2,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
@@ -50,8 +50,8 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 8,
-							"minor" : 1,
-							"revision" : 11,
+							"minor" : 6,
+							"revision" : 2,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -93,7 +93,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 520.0, 170.0, 143.0, 131.0 ],
+									"patching_rect" : [ 520.0, 170.0, 143.0, 127.0 ],
 									"style" : "helpfile_label",
 									"text" : "The 'ptz_pantilt' attribute sets the pan/tilt directly whereas the 'ptz_pantilt_speed' attribute adjusts the current pan/tilt position. Zoom and focus attributes also follow this same pattern."
 								}
@@ -209,7 +209,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 100.0, 420.0, 420.0, 48.0 ],
+									"patching_rect" : [ 100.0, 420.0, 420.0, 47.0 ],
 									"style" : "helpfile_label",
 									"text" : "These messages allow interaction with preset functionality on the NDI source. Note that any preset data is managed and stored on the source, not by jit.ndi.receiver~."
 								}
@@ -222,7 +222,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 230.0, 150.0, 120.0, 117.0 ],
+									"patching_rect" : [ 230.0, 150.0, 120.0, 114.0 ],
 									"style" : "helpfile_label",
 									"text" : "This read-only attribute indicates whether the connected source has PTZ capability. All PTZ attributes are disabled unless this attribute is 1."
 								}
@@ -235,7 +235,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 140.0, 90.0, 514.0, 48.0 ],
+									"patching_rect" : [ 140.0, 90.0, 514.0, 47.0 ],
 									"style" : "helpfile_label",
 									"text" : "NDI sources can advertise themselves as PTZ devices to allow control data to be received from NDI receivers. jit.ndi.receive~ contains attributes which allow control of these PTZ properties."
 								}
@@ -439,6 +439,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 110.0, 370.0, 230.0, 22.0 ]
 								}
 
@@ -452,6 +453,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 110.0, 310.0, 230.0, 22.0 ]
 								}
 
@@ -465,6 +467,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 70.0, 190.0, 150.0, 22.0 ]
 								}
 
@@ -500,7 +503,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
-									"patching_rect" : [ 40.0, 650.0, 160.0, 120.0 ]
+									"patching_rect" : [ 40.0, 650.0, 160.0, 120.0 ],
+									"sync" : 1
 								}
 
 							}
@@ -782,13 +786,13 @@
 								"name" : "AudioStatus_Menu",
 								"default" : 								{
 									"bgfillcolor" : 									{
-										"type" : "color",
+										"angle" : 270.0,
+										"autogradient" : 0,
 										"color" : [ 0.294118, 0.313726, 0.337255, 1 ],
 										"color1" : [ 0.454902, 0.462745, 0.482353, 0.0 ],
 										"color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-										"angle" : 270.0,
 										"proportion" : 0.39,
-										"autogradient" : 0
+										"type" : "color"
 									}
 
 								}
@@ -821,8 +825,8 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 8,
-							"minor" : 1,
-							"revision" : 11,
+							"minor" : 6,
+							"revision" : 2,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -897,7 +901,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
-									"patching_rect" : [ 190.0, 390.0, 160.0, 120.0 ]
+									"patching_rect" : [ 190.0, 390.0, 160.0, 120.0 ],
+									"sync" : 1
 								}
 
 							}
@@ -908,7 +913,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
-									"patching_rect" : [ 20.0, 390.0, 160.0, 120.0 ]
+									"patching_rect" : [ 20.0, 390.0, 160.0, 120.0 ],
+									"sync" : 1
 								}
 
 							}
@@ -935,7 +941,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 280.0, 100.0, 358.0, 75.0 ],
+									"patching_rect" : [ 280.0, 100.0, 358.0, 74.0 ],
 									"style" : "helpfile_label",
 									"text" : "NDI video is sent over the network in the UYVY colorspace for reasons of efficiency. ARGB matrces will be internally converted, however if using UYVY in a patch this conversion can be avoided (and performance improved) by setting correct colormode on jit.ndi.receive~."
 								}
@@ -950,6 +956,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 70.0, 210.0, 180.0, 22.0 ]
 								}
 
@@ -1055,13 +1062,13 @@
 								"name" : "AudioStatus_Menu",
 								"default" : 								{
 									"bgfillcolor" : 									{
-										"type" : "color",
+										"angle" : 270.0,
+										"autogradient" : 0,
 										"color" : [ 0.294118, 0.313726, 0.337255, 1 ],
 										"color1" : [ 0.454902, 0.462745, 0.482353, 0.0 ],
 										"color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-										"angle" : 270.0,
 										"proportion" : 0.39,
-										"autogradient" : 0
+										"type" : "color"
 									}
 
 								}
@@ -1129,8 +1136,8 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 8,
-							"minor" : 1,
-							"revision" : 11,
+							"minor" : 6,
+							"revision" : 2,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -1176,7 +1183,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 400.0, 650.0, 160.0, 85.0 ],
+									"patching_rect" : [ 400.0, 650.0, 160.0, 84.0 ],
 									"text" : "Tally status can be set using attributes. This status is received by the sender."
 								}
 
@@ -1192,7 +1199,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "", "" ],
-									"patching_rect" : [ 260.0, 560.0, 80.0, 36.0 ]
+									"patching_rect" : [ 260.0, 560.0, 80.0, 35.0 ]
 								}
 
 							}
@@ -1215,8 +1222,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 500.0, 110.0, 116.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser https://ndi.tv/"
+									"patching_rect" : [ 500.0, 110.0, 116.0, 49.0 ],
+									"text" : ";\rmax launchbrowser https://ndi.video/"
 								}
 
 							}
@@ -1230,8 +1237,8 @@
 									"numoutlets" : 3,
 									"outlettype" : [ "", "", "int" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 490.0, 57.0, 110.0, 16.0 ],
-									"text" : "ndi.tv",
+									"patching_rect" : [ 530.0, 57.0, 110.0, 16.0 ],
+									"text" : "ndi.video",
 									"textjustification" : 0,
 									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
 									"underline" : 1
@@ -1247,8 +1254,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 130.0, 740.0, 245.0, 36.0 ],
-									"text" : ";\r\nmax launchbrowser https://www.pixsper.com"
+									"patching_rect" : [ 130.0, 740.0, 245.0, 35.0 ],
+									"text" : ";\rmax launchbrowser https://www.pixsper.com"
 								}
 
 							}
@@ -1295,7 +1302,7 @@
 									"numoutlets" : 0,
 									"patching_rect" : [ 169.0, 810.0, 310.0, 20.0 ],
 									"style" : "helpfile_label",
-									"text" : "jit.ndi v0.3.0 by David Butler / Pixsper Ltd.",
+									"text" : "jit.ndi v0.4.0 by David Butler / Pixsper Ltd.",
 									"textcolor" : [ 0.0, 0.0, 0.0, 1.0 ]
 								}
 
@@ -1321,7 +1328,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 390.0, 310.0, 262.0, 55.0 ],
+									"patching_rect" : [ 390.0, 310.0, 262.0, 54.0 ],
 									"text" : "The list of available sources can be retrieved as a dictionary or as messages to populate a umenu."
 								}
 
@@ -1333,7 +1340,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "jit_matrix", "" ],
-									"patching_rect" : [ 90.0, 560.0, 160.0, 120.0 ]
+									"patching_rect" : [ 90.0, 560.0, 160.0, 120.0 ],
+									"sync" : 1
 								}
 
 							}
@@ -1357,6 +1365,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 410.0, 620.0, 130.0, 22.0 ]
 								}
 
@@ -1370,6 +1379,7 @@
 									"numinlets" : 1,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
+									"parameter_enable" : 0,
 									"patching_rect" : [ 410.0, 590.0, 130.0, 22.0 ]
 								}
 
@@ -1469,8 +1479,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 540.0, 430.0, 110.0, 50.0 ],
-									"text" : ";\r\nmax launchbrowser $1"
+									"patching_rect" : [ 540.0, 430.0, 110.0, 49.0 ],
+									"text" : ";\rmax launchbrowser $1"
 								}
 
 							}
@@ -1507,9 +1517,9 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 20.0, 254.0, 560.0, 34.0 ],
+									"patching_rect" : [ 20.0, 254.0, 540.0, 33.0 ],
 									"style" : "helpfile_label",
-									"text" : "This object requires Newtek NDI Runtime or Newtek NDI Tools to be installed in order to function. Please download from the link in the top right."
+									"text" : "This object requires NDI Runtime or NDI Tools to be installed in order to function. Please download from the link in the top right."
 								}
 
 							}
@@ -1538,8 +1548,8 @@
 									"numoutlets" : 3,
 									"outlettype" : [ "", "", "int" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 490.0, 10.0, 180.0, 20.0 ],
-									"text" : "Download NewTek NDI Runtime",
+									"patching_rect" : [ 530.0, 10.0, 140.0, 20.0 ],
+									"text" : "Download NDI Runtime",
 									"textjustification" : 0,
 									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
 									"underline" : 1
@@ -1556,8 +1566,8 @@
 									"numoutlets" : 3,
 									"outlettype" : [ "", "", "int" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 490.0, 34.0, 110.0, 16.0 ],
-									"text" : "NewTek NDI Tools",
+									"patching_rect" : [ 530.0, 34.0, 110.0, 16.0 ],
+									"text" : "NDI Tools",
 									"textjustification" : 0,
 									"textoncolor" : [ 0.011765, 0.396078, 0.752941, 1.0 ],
 									"underline" : 1
@@ -1573,8 +1583,8 @@
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 340.0, 80.0, 213.0, 36.0 ],
-									"text" : ";\r\nmax launchbrowser https://ndi.tv/tools/"
+									"patching_rect" : [ 340.0, 80.0, 232.0, 35.0 ],
+									"text" : ";\rmax launchbrowser https://ndi.video/tools/"
 								}
 
 							}
@@ -1590,7 +1600,7 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 120.0, 390.0, 204.379974365234375, 69.0 ]
+									"patching_rect" : [ 120.0, 390.0, 204.171981811523438, 69.0 ]
 								}
 
 							}
@@ -1601,7 +1611,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 90.0, 740.0, 210.0, 34.0 ],
+									"patching_rect" : [ 90.0, 740.0, 210.0, 33.0 ],
 									"style" : "helpfile_label",
 									"text" : "Switch audio processing on to hear received audio."
 								}
@@ -1943,13 +1953,13 @@
 								"name" : "AudioStatus_Menu",
 								"default" : 								{
 									"bgfillcolor" : 									{
-										"type" : "color",
+										"angle" : 270.0,
+										"autogradient" : 0,
 										"color" : [ 0.294118, 0.313726, 0.337255, 1 ],
 										"color1" : [ 0.454902, 0.462745, 0.482353, 0.0 ],
 										"color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-										"angle" : 270.0,
 										"proportion" : 0.39,
-										"autogradient" : 0
+										"type" : "color"
 									}
 
 								}
@@ -1985,7 +1995,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 10.0, 10.0, 190.016006469726563, 57.600002288818359 ]
+					"patching_rect" : [ 10.0, 10.0, 190.016006469726562, 57.600002288818359 ]
 				}
 
 			}
@@ -1999,8 +2009,8 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 8,
-							"minor" : 1,
-							"revision" : 11,
+							"minor" : 6,
+							"revision" : 2,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -2087,7 +2097,7 @@
  ],
 		"lines" : [  ],
 		"dependency_cache" : [ 			{
-				"name" : "helpname.js",
+				"name" : "helpargs.js",
 				"bootpath" : "C74:/help/resources",
 				"type" : "TEXT",
 				"implicit" : 1
@@ -2099,16 +2109,9 @@
 				"implicit" : 1
 			}
 , 			{
-				"name" : "helpargs.js",
+				"name" : "helpname.js",
 				"bootpath" : "C74:/help/resources",
 				"type" : "TEXT",
-				"implicit" : 1
-			}
-, 			{
-				"name" : "Logo_Google.png",
-				"bootpath" : "~/Dropbox/Pixsper/Branding",
-				"patcherrelativepath" : "../../../../../Dropbox/Pixsper/Branding",
-				"type" : "PNG",
 				"implicit" : 1
 			}
 , 			{
@@ -2118,8 +2121,8 @@
 				"implicit" : 1
 			}
 , 			{
-				"name" : "jit.ndi.receive~.mxe64",
-				"type" : "mx64"
+				"name" : "jit.ndi.receive~.mxo",
+				"type" : "iLaX"
 			}
  ],
 		"autosave" : 0,
@@ -2127,13 +2130,13 @@
 				"name" : "AudioStatus_Menu",
 				"default" : 				{
 					"bgfillcolor" : 					{
-						"type" : "color",
+						"angle" : 270.0,
+						"autogradient" : 0,
 						"color" : [ 0.294118, 0.313726, 0.337255, 1 ],
 						"color1" : [ 0.454902, 0.462745, 0.482353, 0.0 ],
 						"color2" : [ 0.290196, 0.309804, 0.301961, 1.0 ],
-						"angle" : 270.0,
 						"proportion" : 0.39,
-						"autogradient" : 0
+						"type" : "color"
 					}
 
 				}
