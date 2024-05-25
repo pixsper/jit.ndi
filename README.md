@@ -1,13 +1,13 @@
 <img alt="jit.ndi" src="https://raw.githubusercontent.com/pixsper/jit.ndi/develop/icon.png" width="200" height="200">
 
-Extensions for sending/receiving video and audio using the [Newtek NDI®](https://ndi.tv/) protocol in [Cycling 74's Max](https://cycling74.com/products/max/)
+Extensions for sending/receiving video and audio using the [NDI®](https://ndi.video/) protocol in [Cycling 74's Max](https://cycling74.com/products/max/)
 
 ## Overview
 
-The [NewTek NDI®](https://ndi.tv/) protocol allows high-quality, high-performance, low-latency streaming of video and audio over a local network. jit.ndi provides a pair of objects to interface this protocol with the Max/Jitter environment, allowing sending/receiving of jitter matrices and MSP signals to/from any other device supporting NDI.
+The [NDI®](https://ndi.video/) protocol allows high-quality, high-performance, low-latency streaming of video and audio over a local network. jit.ndi provides a pair of objects to interface this protocol with the Max/Jitter environment, allowing sending/receiving of jitter matrices and MSP signals to/from any other device supporting NDI.
 
 ## Features
-- NDI 5.0 compatible (runtime is dynamically loaded so will work with any installed compatible NDI version)
+- NDI 6.0 compatible (runtime is dynamically loaded so will work with any installed compatible NDI version)
 - Send/receive 2D jitter matrices of any size. 3-plane RGB and 4-plane RGBA both supported.
 - YUV mode for high-performance usage.
 - Send/receive unlimited number of audio channels.
@@ -15,8 +15,8 @@ The [NewTek NDI®](https://ndi.tv/) protocol allows high-quality, high-performan
 
 ## Requirements
 - Max 8 (64-bit) - Windows or Mac (Intel/Apple Silicon)
-- Newtek NDI® Runtime - [Windows](http://new.tk/NDIRedistV5) or [Mac](http://new.tk/NDIRedistV5Apple)
-- [NewTek NDI® Tools](https://ndi.tv/tools/) - Required if using NDI-HX equipment (such as the [NewTek NDI®|HX Camera app](https://www.newtek.com/software/ndi-camera/)) (and also useful for testing)
+- NDI® Runtime - [Windows](http://ndi.link/NDIRedistV6) or [Mac](http://ndi.link/NDIRedistV6Apple)
+- [NDI® Tools](https://ndi.video/tools/) - Required if using NDI-HX equipment (such as the [NDI HX Camera app](https://ndi.video/tools/ndi-hx-camera/)) (and also useful for testing)
 
 ## License
 jit.ndi is licensed under LGPL 3.0. This means you are free to use the objects in any commercial/non-commercial project but any changes to the source code must be released under the same license.
@@ -29,10 +29,10 @@ jit.ndi is licensed under LGPL 3.0. This means you are free to use the objects i
 Help patchers and Max documentation metadata included in the package.
 
 ## Copyright
-jit.ndi Copyright (C) 2022 Pixsper Ltd.
+jit.ndi Copyright (C) 2024 Pixsper Ltd.
 www.pixsper.com
 
-NDI® is a registered trademark of NewTek, Inc  
-https://ndi.tv/
+NDI® is a trademark of Vizrt NDI AB. ©2023
+https://ndi.video/
 
 Includes [yxml](https://dev.yorhel.nl/yxml) (C) 2013-2014 Yoran Heling

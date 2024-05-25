@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -18,7 +18,7 @@ jobs:
         os: [windows-latest, macOS-latest]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
@@ -30,7 +30,7 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
       
     - name: Upload built package binaries
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
           name: ${{ matrix.os }} binaries
           path: externals/**/*.*
