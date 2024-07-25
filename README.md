@@ -1,4 +1,4 @@
-<img alt="jit.ndi" src="https://raw.githubusercontent.com/pixsper/jit.ndi/develop/icon.png" width="200" height="200">
+<img alt="jit.ndi" src="icon.png" width="200" height="200">
 
 Extensions for sending/receiving video and audio using the [NDI®](https://ndi.video/) protocol in [Cycling 74's Max](https://cycling74.com/products/max/)
 
