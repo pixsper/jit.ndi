@@ -20,9 +20,9 @@
 	},
 	"package_extra" : {
 		"reverse_domain" : "com.pixsper",
-		"copyright" : "Copyright (c) 2024 Pixsper Ltd."
+		"copyright" : "Copyright (c) 2026 Pixsper Ltd."
 	},
 	"tags" : [ ],
-	"version" : "0.3.2",
+	"version" : "0.3.3",
 	"website" : "https://github.com/pixsper/jit.ndi"
 }

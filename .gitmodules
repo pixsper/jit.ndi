@@ -3,4 +3,4 @@
 	url = https://github.com/Cycling74/max-sdk-base
 [submodule "source/yxml"]
 	path = source/yxml
-	url = https://g.blicky.net/yxml.git
+	url = https://code.blicky.net/yorhel/yxml
